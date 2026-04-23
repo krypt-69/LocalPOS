@@ -2,125 +2,338 @@
 
 {% block title %}Debtors Management{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ── Stats Grid ──────────────────────────────────────── */
+.debtors-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+/* ── Filter Card ─────────────────────────────────────── */
+.filter-row {
+    display: grid;
+    grid-template-columns: 1fr 200px auto auto;
+    gap: 12px;
+    align-items: end;
+}
+
+/* ── Table Specific ──────────────────────────────────── */
+.customer-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.customer-phone {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}
+.balance-cell {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--danger);
+    font-variant-numeric: tabular-nums;
+}
+.amount-cell {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+}
+.date-cell {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.aging-cell {
+    font-size: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* ── Status Badges ───────────────────────────────────── */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.status-overdue   { background: var(--danger-soft);  color: var(--danger); }
+.status-due-soon  { background: var(--warning-soft); color: var(--warning); }
+.status-pending   { background: var(--info-soft);    color: var(--info); }
+.status-paid      { background: var(--success-soft); color: var(--success); }
+.status-default   { background: var(--bg-surface-2); color: var(--text-secondary); }
+
+/* ── Empty State ─────────────────────────────────────── */
+.empty-state {
+    padding: 52px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+}
+.empty-state-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--success-soft);
+    color: var(--success);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 4px;
+}
+.empty-state-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.empty-state-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 900px) {
+    .debtors-stats { grid-template-columns: 1fr 1fr; }
+    .filter-row    { grid-template-columns: 1fr 1fr; }
+    .filter-row .filter-actions {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+}
+@media (max-width: 560px) {
+    .debtors-stats { grid-template-columns: 1fr; }
+    .filter-row    { grid-template-columns: 1fr; }
+    .filter-row .filter-actions {
+        grid-column: 1;
+        grid-template-columns: 1fr 1fr;
+    }
+    /* Hide less critical columns on small screens */
+    .col-hide-sm { display: none; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4">
-        <i class="fas fa-users"></i> Debtors Management
-    </h1>
-    
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h3>KSh {{ "%.2f"|format(total_debt) }}</h3>
-                    <p class="mb-0">Total Outstanding Debt</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h3>{{ total_debtors }}</h3>
-                    <p class="mb-0">Active Debtors</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h3>{{ overdue_count }}</h3>
-                    <p class="mb-0">Overdue Accounts</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Search</label>
-                    <input type="text" name="search" class="form-control" value="{{ search }}" placeholder="Name or phone...">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-select">
-                        <option value="">All Active</option>
-                        <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
-                        <option value="due_soon" {% if status_filter == 'due_soon' %}selected{% endif %}>Due Soon (3 days)</option>
-                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">&nbsp;</label>
-                    <button type="submit" class="btn btn-primary d-block">Filter</button>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">&nbsp;</label>
-                    <a href="{{ url_for('debtors.debtors_list') }}" class="btn btn-secondary d-block">Reset</a>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <div class="card">
-        <div class="card-body">
-            {% if debtors %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Customer</th>
-                            <th>Phone</th>
-                            <th>Sale Date</th>
-                            <th>Total Owed</th>
-                            <th>Paid</th>
-                            <th>Balance</th>
-                            <th>Age</th>
-                            <th>Due Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for debtor in debtors %}
-                        <tr>
-                            <td><strong>{{ debtor.customer_name }}</strong></td>
-                            <td>{{ debtor.customer_phone or '-' }}</td>
-                            <td>{{ debtor.created_at.strftime('%Y-%m-%d') }}</td>
-                            <td>KSh {{ "%.2f"|format(debtor.total_owed) }}</td>
-                            <td>KSh {{ "%.2f"|format(debtor.amount_paid) }}</td>
-                            <td class="text-danger"><strong>KSh {{ "%.2f"|format(debtor.balance) }}</strong></td>
-                            <td>{{ debtor.aging_category }}</td>
-                            <td>
-                                {% if debtor.due_date %}
-                                    {{ debtor.due_date.strftime('%Y-%m-%d') }}
-                                {% else %}
-                                    <span class="text-muted">Not set</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge bg-{{ debtor.status_info.color }}">
-                                    {{ debtor.status_info.text }}
-                                </span>
-                            </td>
-                            <td>
-                                <a href="{{ url_for('debtors.debtor_profile', debtor_id=debtor.id) }}" 
-                                   class="btn btn-sm btn-info">
-                                    <i class="fas fa-eye"></i> View
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="alert alert-success">
-                <i class="fas fa-check-circle"></i> No active debts! All customers have paid.
-            </div>
-            {% endif %}
-        </div>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Debtors</h1>
+        <p class="page-subtitle">Track and manage outstanding customer balances</p>
     </div>
 </div>
+
+<!-- ── Stat Cards ──────────────────────────────────────── -->
+<div class="debtors-stats">
+
+    <div class="stat-card">
+        <div class="stat-icon red">
+            <i class="fas fa-scale-unbalanced"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Outstanding</div>
+            <div class="stat-value" style="font-size:18px;">
+                KSh {{ "%.2f"|format(total_debt) }}
+            </div>
+            <div class="stat-sub">Across all debtors</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Active Debtors</div>
+            <div class="stat-value">{{ total_debtors }}</div>
+            <div class="stat-sub">With open balances</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Overdue Accounts</div>
+            <div class="stat-value">{{ overdue_count }}</div>
+            <div class="stat-sub">Past due date</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Filter Bar ──────────────────────────────────────── -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET">
+            <div class="filter-row">
+
+                <div class="form-group mb-0">
+                    <label class="form-label">Search</label>
+                    <div style="position:relative;">
+                        <i class="fas fa-magnifying-glass"
+                           style="position:absolute; left:11px; top:50%; transform:translateY(-50%);
+                                  color:var(--text-muted); font-size:13px; pointer-events:none;"></i>
+                        <input type="text" name="search" class="form-control"
+                               value="{{ search }}" placeholder="Name or phone…"
+                               style="padding-left:34px;">
+                    </div>
+                </div>
+
+                <div class="form-group mb-0">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        <option value="">All Active</option>
+                        <option value="overdue"  {% if status_filter == 'overdue'   %}selected{% endif %}>
+                            Overdue
+                        </option>
+                        <option value="due_soon" {% if status_filter == 'due_soon'  %}selected{% endif %}>
+                            Due Soon (3 days)
+                        </option>
+                        <option value="pending"  {% if status_filter == 'pending'   %}selected{% endif %}>
+                            Pending
+                        </option>
+                    </select>
+                </div>
+
+                <div class="filter-actions" style="display:flex; gap:10px; align-items:flex-end;">
+                    <button type="submit" class="btn btn-primary" style="white-space:nowrap;">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <a href="{{ url_for('debtors.debtors_list') }}"
+                       class="btn btn-secondary" style="white-space:nowrap;">
+                        <i class="fas fa-rotate-left"></i> Reset
+                    </a>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ── Debtors Table ───────────────────────────────────── -->
+<div class="card">
+    {% if debtors %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th class="col-hide-sm">Sale Date</th>
+                    <th>Total Owed</th>
+                    <th class="col-hide-sm">Paid</th>
+                    <th>Balance</th>
+                    <th class="col-hide-sm">Age</th>
+                    <th class="col-hide-sm">Due Date</th>
+                    <th>Status</th>
+                    <th style="text-align:center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for debtor in debtors %}
+                <tr>
+
+                    <!-- Customer -->
+                    <td>
+                        <div class="customer-name">{{ debtor.customer_name }}</div>
+                        {% if debtor.customer_phone %}
+                        <div class="customer-phone">
+                            <i class="fas fa-phone" style="font-size:10px; margin-right:3px;"></i>
+                            {{ debtor.customer_phone }}
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- Sale Date -->
+                    <td class="date-cell col-hide-sm">
+                        {{ debtor.created_at.strftime('%d %b %Y') }}
+                    </td>
+
+                    <!-- Total Owed -->
+                    <td class="amount-cell">
+                        KSh {{ "%.2f"|format(debtor.total_owed) }}
+                    </td>
+
+                    <!-- Paid -->
+                    <td class="amount-cell col-hide-sm"
+                        style="color:var(--success);">
+                        KSh {{ "%.2f"|format(debtor.amount_paid) }}
+                    </td>
+
+                    <!-- Balance -->
+                    <td class="balance-cell">
+                        KSh {{ "%.2f"|format(debtor.balance) }}
+                    </td>
+
+                    <!-- Aging -->
+                    <td class="aging-cell col-hide-sm">
+                        {{ debtor.aging_category }}
+                    </td>
+
+                    <!-- Due Date -->
+                    <td class="date-cell col-hide-sm">
+                        {% if debtor.due_date %}
+                            {{ debtor.due_date.strftime('%d %b %Y') }}
+                        {% else %}
+                            <span style="color:var(--text-muted);">Not set</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Status -->
+                    <td>
+                        {% set s = debtor.status_info.color %}
+                        <span class="status-badge
+                            {% if s == 'danger' %}status-overdue
+                            {% elif s == 'warning' %}status-due-soon
+                            {% elif s == 'info' %}status-pending
+                            {% elif s == 'success' %}status-paid
+                            {% else %}status-default{% endif %}">
+                            {% if s == 'danger' %}<i class="fas fa-circle-xmark"></i>
+                            {% elif s == 'warning' %}<i class="fas fa-clock"></i>
+                            {% elif s == 'info' %}<i class="fas fa-hourglass-half"></i>
+                            {% elif s == 'success' %}<i class="fas fa-circle-check"></i>
+                            {% else %}<i class="fas fa-circle"></i>{% endif %}
+                            {{ debtor.status_info.text }}
+                        </span>
+                    </td>
+
+                    <!-- Actions -->
+                    <td style="text-align:center;">
+                        <a href="{{ url_for('debtors.debtor_profile', debtor_id=debtor.id) }}"
+                           class="btn btn-sm btn-secondary">
+                            <i class="fas fa-eye"></i>
+                            <span class="col-hide-sm">View</span>
+                        </a>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-circle-check"></i>
+        </div>
+        <div class="empty-state-title">All clear — no outstanding debts</div>
+        <div class="empty-state-sub">Every customer account is fully settled.</div>
+    </div>
+    {% endif %}
+</div>
+
 {% endblock %}

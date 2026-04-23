@@ -1,213 +1,716 @@
 {% extends "base.html" %}
 
-{% block title %}{{ debtor.customer_name }} - Debtor Profile{% endblock %}
+{% block title %}{{ debtor.customer_name }} — Debtor Profile{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Profile Layout ──────────────────────────────────── */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.profile-sidebar {
+    position: sticky;
+    top: calc(var(--topbar-height) + 16px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ── Customer Card ───────────────────────────────────── */
+.customer-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+.customer-card-top {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+}
+.customer-avatar {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.customer-card-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+.customer-card-phone {
+    font-size: 13px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ── Info Rows ───────────────────────────────────────── */
+.info-list {
+    display: flex;
+    flex-direction: column;
+}
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.info-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.info-value.danger { color: var(--danger); }
+.info-value.success { color: var(--success); }
+
+/* ── Balance Summary Block ───────────────────────────── */
+.balance-summary {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+.balance-summary-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+.balance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+.balance-row:last-child { border-bottom: none; }
+.balance-row.grand {
+    padding: 13px 18px;
+    background: var(--danger-soft);
+}
+.balance-row.grand .balance-label { font-weight: 700; color: var(--text-primary); font-size: 14px; }
+.balance-row.grand .balance-val   { font-weight: 800; color: var(--danger); font-size: 16px; }
+.balance-label { color: var(--text-secondary); font-weight: 500; }
+.balance-val   { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-primary); }
+.balance-val.success { color: var(--success); }
+
+/* ── Progress bar ────────────────────────────────────── */
+.pay-progress-wrap {
+    padding: 10px 18px 14px;
+    border-bottom: 1px solid var(--border);
+}
+.pay-progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+.pay-progress-track {
+    height: 6px;
+    background: var(--bg-surface-2);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+.pay-progress-fill {
+    height: 100%;
+    background: var(--success);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+/* ── Actions Card ────────────────────────────────────── */
+.actions-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+.actions-card-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+.actions-card-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.actions-card-body .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ── Main Content ────────────────────────────────────── */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── Receipt Header ──────────────────────────────────── */
+.receipt-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.receipt-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+}
+
+/* ── Payment history ─────────────────────────────────── */
+.method-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+.method-cash   { background: var(--success-soft); color: var(--success); }
+.method-mpesa  { background: var(--info-soft);    color: var(--info); }
+.method-credit { background: var(--warning-soft); color: var(--warning); }
+
+.empty-payments {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.empty-payments i { font-size: 24px; opacity: 0.3; }
+
+/* ── Modal ───────────────────────────────────────────── */
+.modal-backdrop-custom {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1200;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+.modal-backdrop-custom.open { display: flex; }
+.modal-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalIn 0.18s ease;
+}
+@keyframes modalIn {
+    from { opacity:0; transform:scale(0.96) translateY(10px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.modal-head {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.modal-head-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.modal-close {
+    width: 30px; height: 30px;
+    border: 1px solid var(--border);
+    background: var(--bg-surface-2);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    transition: background var(--transition), color var(--transition);
+}
+.modal-close:hover { background: var(--danger-soft); color: var(--danger); border-color: var(--danger); }
+.modal-body-inner {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.modal-foot {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* ── Summary box inside modal ────────────────────────── */
+.modal-summary {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+}
+.modal-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.modal-summary-row .label { color: var(--text-secondary); }
+.modal-summary-row .val   { font-weight: 700; font-variant-numeric: tabular-nums; }
+.modal-summary-row .val.danger  { color: var(--danger); }
+
+/* ── Write-off warning ───────────────────────────────── */
+.writeoff-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--danger-soft);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    color: var(--danger);
+    line-height: 1.5;
+}
+.writeoff-warning i { margin-top: 1px; flex-shrink: 0; }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 860px) {
+    .profile-grid { grid-template-columns: 1fr; }
+    .profile-sidebar { position: static; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">
-        <i class="fas fa-user"></i> {{ debtor.customer_name }}
-        <a href="{{ url_for('debtors.debtors_list') }}" class="btn btn-secondary float-end">
-            <i class="fas fa-arrow-left"></i> Back to Debtors
-        </a>
-    </h1>
-    
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Customer Information</h5>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ debtor.customer_name }}</h1>
+        <p class="page-subtitle">Debtor profile &amp; payment history</p>
+    </div>
+    <a href="{{ url_for('debtors.debtors_list') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Debtors
+    </a>
+</div>
+
+<div class="profile-grid">
+
+    <!-- ── SIDEBAR ──────────────────────────────────── -->
+    <div class="profile-sidebar">
+
+        <!-- Customer Info -->
+        <div class="customer-card">
+            <div class="customer-card-top">
+                <div class="customer-avatar">
+                    {{ debtor.customer_name[0]|upper }}
                 </div>
-                <div class="card-body">
-                    <p><strong>Name:</strong> {{ debtor.customer_name }}</p>
-                    <p><strong>Phone:</strong> {{ debtor.customer_phone or 'Not provided' }}</p>
-                    <p><strong>Sale Date:</strong> {{ debtor.created_at.strftime('%Y-%m-%d') }}</p>
-                    <p><strong>Due Date:</strong> 
-                        {% if debtor.due_date %}
-                            {{ debtor.due_date.strftime('%Y-%m-%d') }}
-                            {% if debtor.due_date < today %}
-                                <span class="badge bg-danger">Overdue</span>
-                            {% endif %}
-                        {% else %}
-                            Not set
-                        {% endif %}
-                    </p>
-                    <hr>
-                    <p><strong>Total Owed:</strong> KSh {{ "%.2f"|format(debtor.total_owed) }}</p>
-                    <p><strong>Total Paid:</strong> KSh {{ "%.2f"|format(debtor.amount_paid) }}</p>
-                    <p><strong>Balance:</strong> 
-                        <span class="{% if debtor.balance > 0 %}text-danger{% endif %}">
-                            KSh {{ "%.2f"|format(debtor.balance) }}
-                        </span>
-                    </p>
-                    <p><strong>Status:</strong> 
-                        <span class="badge bg-{{ debtor.status_info.color }}">
-                            {{ debtor.status_info.text }}
-                        </span>
-                    </p>
-                </div>
-            </div>
-            
-            <div class="card mt-3">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Quick Actions</h5>
-                </div>
-                <div class="card-body">
-                    <button class="btn btn-success w-100 mb-2" onclick="showPaymentModal()">
-                        <i class="fas fa-money-bill"></i> Record Payment
-                    </button>
-                    <a href="{{ url_for('debtors.statement', debtor_id=debtor.id) }}" class="btn btn-info w-100 mb-2">
-                        <i class="fas fa-print"></i> Print Statement
-                    </a>
-                    {% if debtor.balance > 0 %}
-                    <button class="btn btn-danger w-100" onclick="showWriteOffModal()">
-                        <i class="fas fa-trash"></i> Write Off Debt
-                    </button>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-8">
-            <div class="card mb-3">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Purchase Details</h5>
-                </div>
-                <div class="card-body">
-                    <p><strong>Receipt #:</strong> {{ sale.receipt_number if sale else 'N/A' }}</p>
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr><th>Product</th><th>Quantity</th><th>Price</th><th>Total</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for item in sale_items %}
-                                <tr>
-                                    <td>{{ item.product.name }}</td>
-                                    <td>{{ item.quantity }}</td>
-                                    <td>KSh {{ "%.2f"|format(item.price_at_sale) }}</td>
-                                    <td>KSh {{ "%.2f"|format(item.total) }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% if sale and sale.notes %}
-                    <p><strong>Notes:</strong> {{ sale.notes }}</p>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0">Payment History</h5>
-                </div>
-                <div class="card-body">
-                    {% if payments %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Amount</th>
-                                    <th>Method</th>
-                                    <th>User</th>
-                                    <th>Notes</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for payment in payments %}
-                                <tr>
-                                    <td>{{ payment.payment_date.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td class="text-success">KSh {{ "%.2f"|format(payment.amount) }}</td>
-                                    <td>{{ payment.payment_method|upper }}</td>
-                                    <td>{{ payment.user.username }}</td>
-                                    <td>{{ payment.notes or '-' }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <div>
+                    <div class="customer-card-name">{{ debtor.customer_name }}</div>
+                    {% if debtor.customer_phone %}
+                    <div class="customer-card-phone">
+                        <i class="fas fa-phone" style="font-size:11px;"></i>
+                        {{ debtor.customer_phone }}
                     </div>
                     {% else %}
-                    <p class="text-muted">No payments recorded yet</p>
+                    <div class="customer-card-phone" style="color:var(--text-muted);">
+                        No phone on record
+                    </div>
                     {% endif %}
                 </div>
             </div>
+
+            <div class="info-list">
+                <div class="info-row">
+                    <span class="info-label">Sale Date</span>
+                    <span class="info-value">
+                        {{ debtor.created_at.strftime('%d %b %Y') }}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Due Date</span>
+                    <span class="info-value">
+                        {% if debtor.due_date %}
+                            {{ debtor.due_date.strftime('%d %b %Y') }}
+                            {% if debtor.due_date < today %}
+                            <span class="badge badge-danger" style="margin-left:5px;">Overdue</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color:var(--text-muted); font-weight:400;">Not set</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">
+                        {% set s = debtor.status_info.color %}
+                        <span class="status-badge
+                            {% if s == 'danger' %}status-overdue
+                            {% elif s == 'warning' %}status-due-soon
+                            {% elif s == 'info' %}status-pending
+                            {% elif s == 'success' %}status-paid
+                            {% else %}status-default{% endif %}"
+                            style="display:inline-flex; align-items:center; gap:4px;
+                                   padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:600;">
+                            {{ debtor.status_info.text }}
+                        </span>
+                    </span>
+                </div>
+            </div>
         </div>
+
+        <!-- Balance Summary -->
+        <div class="balance-summary">
+            <div class="balance-summary-header">Balance Summary</div>
+
+            <div class="balance-row">
+                <span class="balance-label">Total Owed</span>
+                <span class="balance-val">KSh {{ "%.2f"|format(debtor.total_owed) }}</span>
+            </div>
+            <div class="balance-row">
+                <span class="balance-label">Amount Paid</span>
+                <span class="balance-val success">KSh {{ "%.2f"|format(debtor.amount_paid) }}</span>
+            </div>
+
+            <!-- Payment progress bar -->
+            {% if debtor.total_owed > 0 %}
+            <div class="pay-progress-wrap">
+                {% set pct = (debtor.amount_paid / debtor.total_owed * 100)|round(1) %}
+                <div class="pay-progress-label">
+                    <span>Paid {{ pct }}%</span>
+                    <span>{{ "%.0f"|format(100 - pct) }}% remaining</span>
+                </div>
+                <div class="pay-progress-track">
+                    <div class="pay-progress-fill" style="width:{{ pct }}%;"></div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="balance-row grand">
+                <span class="balance-label">Outstanding</span>
+                <span class="balance-val">KSh {{ "%.2f"|format(debtor.balance) }}</span>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="actions-card">
+            <div class="actions-card-header">Quick Actions</div>
+            <div class="actions-card-body">
+                <button class="btn btn-success" onclick="openModal('paymentModal')">
+                    <i class="fas fa-money-bill-wave"></i> Record Payment
+                </button>
+                <a href="{{ url_for('debtors.statement', debtor_id=debtor.id) }}"
+                   class="btn btn-secondary">
+                    <i class="fas fa-print"></i> Print Statement
+                </a>
+                {% if debtor.balance > 0 %}
+                <button class="btn btn-ghost"
+                        style="color:var(--danger); border:1px solid var(--danger);"
+                        onclick="openModal('writeOffModal')">
+                    <i class="fas fa-ban"></i> Write Off Debt
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── MAIN CONTENT ──────────────────────────────── -->
+    <div class="main-content">
+
+        <!-- Purchase Details -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Purchase Details</span>
+                {% if sale %}
+                <div class="receipt-header">
+                    <span style="color:var(--text-muted);">Receipt</span>
+                    <span class="receipt-code">{{ sale.receipt_number }}</span>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-body" style="padding:0;">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th style="text-align:center;">Qty</th>
+                                <th style="text-align:right;">Unit Price</th>
+                                <th style="text-align:right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in sale_items %}
+                            <tr>
+                                <td style="font-weight:500;">{{ item.product.name }}</td>
+                                <td style="text-align:center; color:var(--text-secondary);">
+                                    {{ item.quantity }}
+                                </td>
+                                <td style="text-align:right; font-variant-numeric:tabular-nums;">
+                                    KSh {{ "%.2f"|format(item.price_at_sale) }}
+                                </td>
+                                <td style="text-align:right; font-weight:600;
+                                           font-variant-numeric:tabular-nums;">
+                                    KSh {{ "%.2f"|format(item.total) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if sale and sale.notes %}
+                <div style="padding:12px 16px; border-top:1px solid var(--border);
+                            font-size:13px; color:var(--text-secondary);">
+                    <i class="fas fa-note-sticky" style="margin-right:6px;"></i>
+                    {{ sale.notes }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Payment History -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Payment History</span>
+                {% if payments %}
+                <span style="font-size:12px; color:var(--text-muted);">
+                    {{ payments|length }} record{{ 's' if payments|length != 1 else '' }}
+                </span>
+                {% endif %}
+            </div>
+            {% if payments %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date &amp; Time</th>
+                            <th style="text-align:right;">Amount</th>
+                            <th>Method</th>
+                            <th>Recorded By</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td class="date-cell" style="white-space:nowrap;">
+                                {{ payment.payment_date.strftime('%d %b %Y, %H:%M') }}
+                            </td>
+                            <td style="text-align:right; font-weight:700;
+                                       color:var(--success); font-variant-numeric:tabular-nums;">
+                                KSh {{ "%.2f"|format(payment.amount) }}
+                            </td>
+                            <td>
+                                <span class="method-badge method-{{ payment.payment_method }}">
+                                    {{ payment.payment_method }}
+                                </span>
+                            </td>
+                            <td style="font-size:13px; color:var(--text-secondary);">
+                                {{ payment.user.username }}
+                            </td>
+                            <td style="font-size:12.5px; color:var(--text-muted);">
+                                {{ payment.notes or '—' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-payments">
+                <i class="fas fa-receipt"></i>
+                <span>No payments recorded yet</span>
+            </div>
+            {% endif %}
+        </div>
+
     </div>
 </div>
 
-<!-- Payment Modal -->
-<div class="modal fade" id="paymentModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title">Record Payment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- ── Payment Modal ───────────────────────────────────── -->
+<div class="modal-backdrop-custom" id="paymentModal">
+    <div class="modal-box">
+        <div class="modal-head">
+            <div class="modal-head-title">
+                <i class="fas fa-money-bill-wave" style="color:var(--success);"></i>
+                Record Payment
             </div>
-            <form method="POST" action="{{ url_for('debtors.add_payment', debtor_id=debtor.id) }}">
-                <div class="modal-body">
-                    <p><strong>Customer:</strong> {{ debtor.customer_name }}</p>
-                    <p><strong>Current Balance:</strong> KSh {{ "%.2f"|format(debtor.balance) }}</p>
-                    <div class="mb-3">
-                        <label class="form-label">Amount to Pay</label>
-                        <input type="number" name="amount" class="form-control" required min="0.01" step="0.01" max="{{ debtor.balance }}">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Payment Method</label>
-                        <select name="payment_method" class="form-select" required>
-                            <option value="cash">Cash</option>
-                            <option value="mpesa">M-Pesa</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Notes</label>
-                        <textarea name="notes" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Record Payment</button>
-                </div>
-            </form>
+            <button class="modal-close" onclick="closeModal('paymentModal')">
+                <i class="fas fa-xmark"></i>
+            </button>
         </div>
+        <form method="POST" action="{{ url_for('debtors.add_payment', debtor_id=debtor.id) }}">
+            <div class="modal-body-inner">
+
+                <div class="modal-summary">
+                    <div class="modal-summary-row">
+                        <span class="label">Customer</span>
+                        <span class="val">{{ debtor.customer_name }}</span>
+                    </div>
+                    <div class="modal-summary-row">
+                        <span class="label">Outstanding Balance</span>
+                        <span class="val danger">KSh {{ "%.2f"|format(debtor.balance) }}</span>
+                    </div>
+                </div>
+
+                <div class="form-group mb-0">
+                    <label class="form-label">
+                        Amount to Pay <span style="color:var(--danger);">*</span>
+                    </label>
+                    <input type="number" name="amount" class="form-control"
+                           required min="0.01" step="0.01"
+                           max="{{ debtor.balance }}"
+                           placeholder="0.00">
+                </div>
+
+                <div class="form-group mb-0">
+                    <label class="form-label">
+                        Payment Method <span style="color:var(--danger);">*</span>
+                    </label>
+                    <select name="payment_method" class="form-control" required>
+                        <option value="cash">Cash</option>
+                        <option value="mpesa">M-Pesa</option>
+                    </select>
+                </div>
+
+                <div class="form-group mb-0">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-control" rows="2"
+                              placeholder="Optional…"></textarea>
+                </div>
+
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('paymentModal')">Cancel</button>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-circle-check"></i> Record Payment
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- Write Off Modal -->
-<div class="modal fade" id="writeOffModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Write Off Debt</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- ── Write-Off Modal ─────────────────────────────────── -->
+<div class="modal-backdrop-custom" id="writeOffModal">
+    <div class="modal-box">
+        <div class="modal-head">
+            <div class="modal-head-title">
+                <i class="fas fa-ban" style="color:var(--danger);"></i>
+                Write Off Debt
             </div>
-            <form method="POST" action="{{ url_for('debtors.write_off_debt', debtor_id=debtor.id) }}">
-                <div class="modal-body">
-                    <div class="alert alert-warning">
-                        <strong>Warning!</strong> This will write off KSh {{ "%.2f"|format(debtor.balance) }}.
+            <button class="modal-close" onclick="closeModal('writeOffModal')">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+        <form method="POST" action="{{ url_for('debtors.write_off_debt', debtor_id=debtor.id) }}">
+            <div class="modal-body-inner">
+
+                <div class="writeoff-warning">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <span>
+                        This will permanently write off
+                        <strong>KSh {{ "%.2f"|format(debtor.balance) }}</strong>
+                        for {{ debtor.customer_name }}.
                         This action cannot be undone.
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Reason for Write-off</label>
-                        <textarea name="reason" class="form-control" rows="3" required></textarea>
-                    </div>
+                    </span>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Confirm Write Off</button>
+
+                <div class="form-group mb-0">
+                    <label class="form-label">
+                        Reason for Write-off <span style="color:var(--danger);">*</span>
+                    </label>
+                    <textarea name="reason" class="form-control" rows="3"
+                              required placeholder="Explain why this debt is being written off…"></textarea>
                 </div>
-            </form>
-        </div>
+
+            </div>
+            <div class="modal-foot">
+                <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('writeOffModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger">
+                    <i class="fas fa-ban"></i> Confirm Write Off
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-function showPaymentModal() {
-    new bootstrap.Modal(document.getElementById('paymentModal')).show();
+function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
-
-function showWriteOffModal() {
-    new bootstrap.Modal(document.getElementById('writeOffModal')).show();
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
 }
+document.querySelectorAll('.modal-backdrop-custom').forEach(el => {
+    el.addEventListener('click', function(e) {
+        if (e.target === this) closeModal(this.id);
+    });
+});
 </script>
+
 {% endblock %}
