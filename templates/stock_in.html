@@ -1,0 +1,566 @@
+{% extends "base.html" %}
+
+{% block title %}Stock In — Add Products{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout ──────────────────────────────────────────── */
+.stockin-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 18px;
+    align-items: start;
+}
+
+/* ── Autocomplete ────────────────────────────────────── */
+.autocomplete-wrap {
+    position: relative;
+}
+.suggestions-box {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 500;
+    display: none;
+}
+.suggestion-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+}
+.suggestion-item:last-child { border-bottom: none; }
+.suggestion-item:hover { background: var(--bg-surface-2); }
+.suggestion-item-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+.suggestion-item-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.suggestion-item-meta span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ── Price Row ───────────────────────────────────────── */
+.price-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+}
+
+/* ── Profit Preview ──────────────────────────────────── */
+.profit-preview {
+    display: none;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-top: 2px;
+}
+.profit-preview-title {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+.profit-preview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.profit-item-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+.profit-item-value {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.profit-positive { color: var(--success); }
+.profit-negative { color: var(--danger); }
+
+.profit-warning {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 10px;
+    padding: 8px 11px;
+    background: var(--danger-soft);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--danger);
+}
+.profit-warning i { font-size: 12px; flex-shrink: 0; }
+
+/* ── Margin Bar ──────────────────────────────────────── */
+.margin-bar-wrap {
+    margin-top: 10px;
+}
+.margin-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+.margin-bar-track {
+    height: 6px;
+    background: var(--bg-base);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+.margin-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease, background 0.3s;
+}
+
+/* ── Form Action Buttons ─────────────────────────────── */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 4px;
+}
+
+/* ── Tips Panel ──────────────────────────────────────── */
+.tips-panel {
+    position: sticky;
+    top: calc(var(--topbar-height) + 16px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.tip-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+}
+.tip-item:last-child { border-bottom: none; }
+.tip-icon {
+    width: 28px; height: 28px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.tip-icon.blue   { background: var(--accent-soft);  color: var(--accent); }
+.tip-icon.green  { background: var(--success-soft); color: var(--success); }
+.tip-icon.orange { background: var(--warning-soft); color: var(--warning); }
+.tip-icon.teal   { background: var(--info-soft);    color: var(--info); }
+
+.tip-text strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1px;
+}
+
+/* ── Category label row ──────────────────────────────── */
+.label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.label-row .form-label { margin-bottom: 0; }
+
+/* ── Hint text ───────────────────────────────────────── */
+.field-hint {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 900px) {
+    .stockin-grid {
+        grid-template-columns: 1fr;
+    }
+    .tips-panel {
+        position: static;
+    }
+}
+@media (max-width: 560px) {
+    .price-row {
+        grid-template-columns: 1fr;
+    }
+    .profit-preview-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-actions {
+        flex-direction: column;
+    }
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Stock In</h1>
+        <p class="page-subtitle">Add new inventory or restock existing products</p>
+    </div>
+</div>
+
+<div class="stockin-grid">
+
+    <!-- ── LEFT: Main Form ──────────────────────────── -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-header-title">New Stock Entry</span>
+        </div>
+        <div class="card-body" style="display:flex; flex-direction:column; gap:16px;">
+
+            <form method="POST" action="{{ url_for('stock_in.add_stock') }}" id="stockForm"
+                  style="display:flex; flex-direction:column; gap:16px;">
+
+                <!-- Product Name with autocomplete -->
+                <div class="form-group mb-0">
+                    <label class="form-label" for="product_name">
+                        Product Name <span style="color:var(--danger)">*</span>
+                    </label>
+                    <div class="autocomplete-wrap">
+                        <input type="text" class="form-control" id="product_name"
+                               name="product_name" required autocomplete="off"
+                               placeholder="Type to search or enter new product…">
+                        <div id="suggestions" class="suggestions-box"></div>
+                    </div>
+                    <div class="field-hint">
+                        <i class="fas fa-circle-info"></i>
+                        Type at least 2 characters to search existing products
+                    </div>
+                </div>
+
+                <!-- Category -->
+                <div class="form-group mb-0">
+                    <div class="label-row">
+                        <label class="form-label" for="category_id">
+                            Category <span style="color:var(--danger)">*</span>
+                        </label>
+                        <a href="{{ url_for('categories.manage_categories') }}"
+                           target="_blank"
+                           class="btn btn-sm btn-ghost"
+                           style="font-size:12px; padding:4px 9px;">
+                            <i class="fas fa-plus"></i> Manage
+                        </a>
+                    </div>
+                    <select class="form-control" id="category_id" name="category_id" required>
+                        <option value="">Select a category…</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Quantity + Prices -->
+                <div class="price-row">
+                    <div class="form-group mb-0">
+                        <label class="form-label" for="quantity">
+                            Quantity <span style="color:var(--danger)">*</span>
+                        </label>
+                        <input type="number" class="form-control" id="quantity"
+                               name="quantity" required min="1" step="1"
+                               placeholder="0">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label" for="buying_price">
+                            Buying Price <span style="color:var(--danger)">*</span>
+                        </label>
+                        <input type="number" class="form-control" id="buying_price"
+                               name="buying_price" required min="0" step="0.01"
+                               placeholder="0.00">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label" for="selling_price">
+                            Selling Price <span style="color:var(--danger)">*</span>
+                        </label>
+                        <input type="number" class="form-control" id="selling_price"
+                               name="selling_price" required min="0" step="0.01"
+                               placeholder="0.00">
+                    </div>
+                </div>
+
+                <!-- Profit Preview -->
+                <div class="profit-preview" id="profitPreview">
+                    <div class="profit-preview-title">
+                        <i class="fas fa-calculator" style="margin-right:5px;"></i>
+                        Profit Analysis
+                    </div>
+                    <div class="profit-preview-grid">
+                        <div>
+                            <div class="profit-item-label">Profit per item</div>
+                            <div class="profit-item-value" id="profitPerItem">—</div>
+                        </div>
+                        <div>
+                            <div class="profit-item-label">Total profit</div>
+                            <div class="profit-item-value" id="totalProfit">—</div>
+                        </div>
+                    </div>
+                    <div class="margin-bar-wrap">
+                        <div class="margin-bar-label">
+                            <span>Margin</span>
+                            <span id="marginPct">0%</span>
+                        </div>
+                        <div class="margin-bar-track">
+                            <div class="margin-bar-fill" id="marginBar"
+                                 style="width:0%; background:var(--success);"></div>
+                        </div>
+                    </div>
+                    <div class="profit-warning" id="profitWarning" style="display:none;">
+                        <i class="fas fa-triangle-exclamation"></i>
+                        Selling price is below cost — you will make a loss on this stock.
+                    </div>
+                </div>
+
+                <!-- Supplier -->
+                <div class="form-group mb-0">
+                    <label class="form-label" for="supplier">Supplier</label>
+                    <input type="text" class="form-control" id="supplier"
+                           name="supplier" placeholder="Supplier name (optional)">
+                </div>
+
+                <!-- Notes -->
+                <div class="form-group mb-0">
+                    <label class="form-label" for="notes">Notes</label>
+                    <textarea class="form-control" id="notes" name="notes"
+                              rows="2" placeholder="Optional notes about this stock entry…"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-floppy-disk"></i> Add to Stock
+                    </button>
+                    <a href="{{ url_for('stock_in.batch_entry') }}" class="btn btn-secondary">
+                        <i class="fas fa-layer-group"></i> Batch Entry
+                    </a>
+                    <a href="{{ url_for('stock_in.import_page') }}" class="btn btn-secondary">
+                        <i class="fas fa-file-arrow-up"></i> Import CSV / Excel
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- ── RIGHT: Tips Panel ─────────────────────────── -->
+    <div class="tips-panel">
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Quick Tips</span>
+            </div>
+            <div class="card-body" style="padding: 8px 16px;">
+                <div class="tip-list">
+                    <div class="tip-item">
+                        <div class="tip-icon blue"><i class="fas fa-magnifying-glass"></i></div>
+                        <div class="tip-text">
+                            <strong>Auto-fill</strong>
+                            Type a product name to find and fill existing product details automatically.
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon green"><i class="fas fa-chart-line"></i></div>
+                        <div class="tip-text">
+                            <strong>Live Profit</strong>
+                            Profit and margin are calculated in real time as you type prices.
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon orange"><i class="fas fa-triangle-exclamation"></i></div>
+                        <div class="tip-text">
+                            <strong>Loss Warning</strong>
+                            You will see a warning if the selling price is set below cost.
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon teal"><i class="fas fa-layer-group"></i></div>
+                        <div class="tip-text">
+                            <strong>Batch Entry</strong>
+                            Adding multiple products at once? Use Batch Entry to save time.
+                        </div>
+                    </div>
+                    <div class="tip-item">
+                        <div class="tip-icon blue"><i class="fas fa-file-excel"></i></div>
+                        <div class="tip-text">
+                            <strong>Bulk Import</strong>
+                            Upload a CSV or Excel file to import hundreds of products at once.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Categories</span>
+            </div>
+            <div class="card-body">
+                <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px; line-height:1.5;">
+                    Need to add or edit categories before entering stock?
+                </p>
+                <a href="{{ url_for('categories.manage_categories') }}"
+                   target="_blank"
+                   class="btn btn-secondary" style="width:100%; justify-content:center;">
+                    <i class="fas fa-tags"></i> Manage Categories
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+
+    /* ── Autocomplete ───────────────────────────────── */
+    const productInput   = document.getElementById('product_name');
+    const suggestionsBox = document.getElementById('suggestions');
+    let searchTimeout;
+
+    productInput.addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        if (query.length < 2) { hideSuggestions(); return; }
+
+        searchTimeout = setTimeout(() => {
+            fetch(`/stock-in/search-product?q=${encodeURIComponent(query)}`)
+                .then(r => r.json())
+                .then(products => {
+                    if (!products.length) { hideSuggestions(); return; }
+                    suggestionsBox.innerHTML = products.map(p => `
+                        <div class="suggestion-item"
+                             onclick="selectProduct(${p.id},'${escStr(p.name)}',${p.buying_price},${p.selling_price},${p.category_id})">
+                            <div class="suggestion-item-name">${p.name}</div>
+                            <div class="suggestion-item-meta">
+                                <span><i class="fas fa-tag"></i> Buy: KSh ${p.buying_price}</span>
+                                <span><i class="fas fa-store"></i> Sell: KSh ${p.selling_price}</span>
+                                <span><i class="fas fa-boxes-stacked"></i> Stock: ${p.current_stock}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    suggestionsBox.style.display = 'block';
+                });
+        }, 280);
+    });
+
+    function hideSuggestions() {
+        suggestionsBox.style.display = 'none';
+        suggestionsBox.innerHTML = '';
+    }
+
+    function escStr(s) {
+        return s.replace(/'/g, "\\'");
+    }
+
+    window.selectProduct = function (id, name, buyPrice, sellPrice, categoryId) {
+        productInput.value = name;
+        document.getElementById('buying_price').value  = buyPrice;
+        document.getElementById('selling_price').value = sellPrice;
+        document.getElementById('category_id').value   = categoryId;
+        hideSuggestions();
+        calculateProfit();
+    };
+
+    document.addEventListener('click', function (e) {
+        if (!productInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            hideSuggestions();
+        }
+    });
+
+    /* ── Profit Calculation ─────────────────────────── */
+    const qtyInput      = document.getElementById('quantity');
+    const buyInput      = document.getElementById('buying_price');
+    const sellInput     = document.getElementById('selling_price');
+    const profitPreview = document.getElementById('profitPreview');
+    const elPerItem     = document.getElementById('profitPerItem');
+    const elTotal       = document.getElementById('totalProfit');
+    const elMarginPct   = document.getElementById('marginPct');
+    const elBar         = document.getElementById('marginBar');
+    const elWarning     = document.getElementById('profitWarning');
+
+    function calculateProfit() {
+        const qty  = parseFloat(qtyInput.value)  || 0;
+        const buy  = parseFloat(buyInput.value)   || 0;
+        const sell = parseFloat(sellInput.value)  || 0;
+
+        if (qty > 0 && buy > 0 && sell > 0) {
+            const perItem = sell - buy;
+            const total   = perItem * qty;
+            const margin  = buy > 0 ? (perItem / sell) * 100 : 0;
+            const isLoss  = perItem < 0;
+            const cls     = isLoss ? 'profit-negative' : 'profit-positive';
+            const sign    = perItem >= 0 ? '+' : '';
+
+            elPerItem.className   = `profit-item-value ${cls}`;
+            elTotal.className     = `profit-item-value ${cls}`;
+            elPerItem.textContent = `${sign}KSh ${perItem.toFixed(2)}`;
+            elTotal.textContent   = `${sign}KSh ${total.toFixed(2)}`;
+
+            const pct = Math.min(Math.abs(margin), 100);
+            elMarginPct.textContent  = `${margin.toFixed(1)}%`;
+            elBar.style.width        = `${pct}%`;
+            elBar.style.background   = isLoss ? 'var(--danger)' : pct > 20 ? 'var(--success)' : 'var(--warning)';
+
+            elWarning.style.display  = isLoss ? 'flex' : 'none';
+            profitPreview.style.display = 'block';
+        } else {
+            profitPreview.style.display = 'none';
+        }
+    }
+
+    [qtyInput, buyInput, sellInput].forEach(el => {
+        el.addEventListener('input', calculateProfit);
+    });
+
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Users Performance Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-users"></i> Users Performance Report
+        <small class="text-muted">{{ start_date }} to {{ end_date }}</small>
+    </h1>
+    
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Staff Performance</h5>
+        </div>
+        <div class="card-body">
+            {% if users %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Sales Count</th>
+                            <th>Total Sales</th>
+                            <th>Average Sale</th>
+                            <th>Contribution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set grand_total = users|sum(attribute='total_sales') %}
+                        {% for user in users %}
+                        {% set percentage = (user.total_sales / grand_total * 100) if grand_total > 0 else 0 %}
+                        <tr>
+                            <td><strong>{{ user.username }}</strong></td>
+                            <td>{{ user.full_name }}</td>
+                            <td>{{ user.sales_count }}</td>
+                            <td class="text-success">KSh {{ "%.2f"|format(user.total_sales) }}</td>
+                            <td>KSh {{ "%.2f"|format(user.avg_sale or 0) }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: {{ percentage }}%">
+                                        {{ "%.1f"|format(percentage) }}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-info">
+                        <tr>
+                            <td colspan="2"><strong>Grand Total</strong></td>
+                            <td><strong>{{ users|sum(attribute='sales_count') }}</strong></td>
+                            <td><strong>KSh {{ "%.2f"|format(grand_total) }}</strong></td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">No sales in this period</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print Report
+        </button>
+        <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+{% endblock %}

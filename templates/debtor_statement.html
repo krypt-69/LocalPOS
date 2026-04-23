@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Statement - {{ debtor.customer_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-primary text-white text-center">
+            <h2>LocalPOS</h2>
+            <h4>Customer Statement</h4>
+            <p>{{ debtor.customer_name }} | {{ debtor.customer_phone or '' }}</p>
+            <p>Generated: {{ now.strftime('%Y-%m-%d %H:%M') if now else '' }}</p>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-6">
+                    <strong>Date of Sale:</strong> {{ debtor.created_at.strftime('%Y-%m-%d') }}<br>
+                    <strong>Due Date:</strong> {{ debtor.due_date.strftime('%Y-%m-%d') if debtor.due_date else 'Not set' }}
+                </div>
+                <div class="col-6 text-end">
+                    <strong>Total Owed:</strong> KSh {{ "%.2f"|format(debtor.total_owed) }}<br>
+                    <strong>Total Paid:</strong> KSh {{ "%.2f"|format(debtor.amount_paid) }}<br>
+                    <strong>Balance:</strong> KSh {{ "%.2f"|format(debtor.balance) }}
+                </div>
+            </div>
+            
+            <h5>Purchase Details</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in sale_items %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-end">KSh {{ "%.2f"|format(item.price_at_sale) }}</td>
+                        <td class="text-end">KSh {{ "%.2f"|format(item.total) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-dark">
+                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                        <td class="text-end"><strong>KSh {{ "%.2f"|format(sale.total_amount if sale else 0) }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <h5 class="mt-4">Payment History</h5>
+            <table class="table table-bordered">
+                <thead>
+                    <tr><th>Date</th><th>Amount</th><th>Method</th><th>Notes</th></tr>
+                </thead>
+                <tbody>
+                    {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.payment_date.strftime('%Y-%m-%d') }}</td>
+                        <td class="text-success">KSh {{ "%.2f"|format(payment.amount) }}</td>
+                        <td>{{ payment.payment_method|upper }}</td>
+                        <td>{{ payment.notes or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not payments %}
+                    <tr><td colspan="4" class="text-center">No payments recorded</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            
+            <div class="text-center mt-4">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Statement
+                </button>
+                <a href="{{ url_for('debtors.debtor_profile', debtor_id=debtor.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add current date to template context
+document.addEventListener('DOMContentLoaded', function() {
+    const now = new Date();
+    document.querySelector('.card-header p:last-child').innerHTML = 
+        `Generated: ${now.toLocaleString()}`;
+});
+</script>
+{% endblock %}

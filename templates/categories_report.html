@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Categories Performance Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-tags"></i> Categories Performance Report
+        <small class="text-muted">{{ start_date }} to {{ end_date }}</small>
+    </h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Total Revenue</h5>
+                    <h2>KSh {{ "%.2f"|format(total_revenue) }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Category Breakdown</h5>
+        </div>
+        <div class="card-body">
+            {% if categories %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Category</th>
+                            <th>Transactions</th>
+                            <th>Items Sold</th>
+                            <th>Revenue</th>
+                            <th>% of Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in categories %}
+                        {% set percentage = (cat.revenue / total_revenue * 100) if total_revenue > 0 else 0 %}
+                        <tr>
+                            <td><strong>{{ cat.name }}</strong></td>
+                            <td>{{ cat.transaction_count }}</td>
+                            <td>{{ cat.items_sold }}</td>
+                            <td class="text-success">KSh {{ "%.2f"|format(cat.revenue) }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width: {{ percentage }}%">
+                                        {{ "%.1f"|format(percentage) }}%
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-info">
+                        <tr>
+                            <td><strong>Totals</strong></td>
+                            <td><strong>{{ categories|sum(attribute='transaction_count') }}</strong></td>
+                            <td><strong>{{ categories|sum(attribute='items_sold') }}</strong></td>
+                            <td><strong>KSh {{ "%.2f"|format(total_revenue) }}</strong></td>
+                            <td><strong>100%</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">No sales in this period</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print Report
+        </button>
+        <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+{% endblock %}

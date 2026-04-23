@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Stock Entry{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-layer-group"></i> Batch Stock Entry
+    </h1>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Add multiple products at once. Click "Add Row" to add more products.
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            <form id="batchForm" method="POST" action="{{ url_for('stock_in.add_batch_stock') }}">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="batchTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Product Name *</th>
+                                <th>Category *</th>
+                                <th>Quantity *</th>
+                                <th>Buying Price *</th>
+                                <th>Selling Price *</th>
+                                <th>Supplier</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="batchBody">
+                            <tr>
+                                <td><input type="text" class="form-control" name="name[]" required></td>
+                                <td>
+                                    <select class="form-select" name="category_id[]" required>
+                                        <option value="">Select</option>
+                                        {% for cat in categories %}
+                                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td><input type="number" class="form-control" name="quantity[]" required min="1"></td>
+                                <td><input type="number" class="form-control" name="buying_price[]" required min="0" step="0.01"></td>
+                                <td><input type="number" class="form-control" name="selling_price[]" required min="0" step="0.01"></td>
+                                <td><input type="text" class="form-control" name="supplier[]"></td>
+                                <td><button type="button" class="btn btn-danger btn-sm" onclick="removeRow(this)"><i class="fas fa-trash"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <button type="button" class="btn btn-secondary" onclick="addRow()">
+                    <i class="fas fa-plus"></i> Add Row
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save All Products
+                </button>
+                <a href="{{ url_for('stock_in.stock_in_page') }}" class="btn btn-link">Back to Single Entry</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function addRow() {
+    const tbody = document.getElementById('batchBody');
+    const newRow = tbody.children[0].cloneNode(true);
+    newRow.querySelectorAll('input').forEach(input => input.value = '');
+    newRow.querySelectorAll('select').forEach(select => select.value = '');
+    tbody.appendChild(newRow);
+}
+
+function removeRow(btn) {
+    const row = btn.closest('tr');
+    if (document.getElementById('batchBody').children.length > 1) {
+        row.remove();
+    } else {
+        alert('At least one product is required');
+    }
+}
+
+document.getElementById('batchForm').addEventListener('submit', function(e) {
+    const products = [];
+    const rows = document.getElementById('batchBody').children;
+    
+    for (let row of rows) {
+        const name = row.querySelector('input[name="name[]"]').value;
+        if (name) {
+            products.push({
+                name: name,
+                category_id: row.querySelector('select[name="category_id[]"]').value,
+                quantity: row.querySelector('input[name="quantity[]"]').value,
+                buying_price: row.querySelector('input[name="buying_price[]"]').value,
+                selling_price: row.querySelector('input[name="selling_price[]"]').value,
+                supplier: row.querySelector('input[name="supplier[]"]').value
+            });
+        }
+    }
+    
+    if (products.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one product');
+        return;
+    }
+    
+    // Store products in hidden field
+    const hiddenField = document.createElement('input');
+    hiddenField.type = 'hidden';
+    hiddenField.name = 'products_data';
+    hiddenField.value = JSON.stringify(products);
+    this.appendChild(hiddenField);
+});
+</script>
+{% endblock %}

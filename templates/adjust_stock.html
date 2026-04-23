@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Adjust Stock - {{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-adjust"></i> Adjust Stock: {{ product.name }}
+    </h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">Current Stock Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Current Stock:</strong> <span class="badge bg-primary">{{ product.current_stock }}</span></p>
+                    <p><strong>Category:</strong> {{ product.category.name }}</p>
+                    <p><strong>Buying Price:</strong> KSh {{ "%.2f"|format(product.buying_price) }}</p>
+                    <p><strong>Selling Price:</strong> KSh {{ "%.2f"|format(product.selling_price) }}</p>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Stock Adjustment Form</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Adjustment Type *</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="adjustment_type" value="add" id="add" required>
+                                <label class="form-check-label" for="add">
+                                    <i class="fas fa-plus text-success"></i> Add Stock (e.g., found items, returns)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="adjustment_type" value="remove" id="remove">
+                                <label class="form-check-label" for="remove">
+                                    <i class="fas fa-minus text-danger"></i> Remove Stock (e.g., damaged, lost, expired)
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity *</label>
+                            <input type="number" class="form-control" id="quantity" name="quantity" required min="1">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for Adjustment *</label>
+                            <select class="form-select" id="reason" name="reason" required>
+                                <option value="">Select reason...</option>
+                                <option value="Damaged goods">Damaged goods</option>
+                                <option value="Lost items">Lost items</option>
+                                <option value="Stock count correction">Stock count correction</option>
+                                <option value="Returns from customer">Returns from customer</option>
+                                <option value="Expired products">Expired products</option>
+                                <option value="Found additional items">Found additional items</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save"></i> Apply Adjustment
+                        </button>
+                        <a href="{{ url_for('stock_management.stock_list') }}" class="btn btn-secondary w-100 mt-2">
+                            Cancel
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">When to Use Adjustments</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li><strong>Damaged Items:</strong> Products broken during handling</li>
+                        <li><strong>Lost Items:</strong> Theft or misplaced stock</li>
+                        <li><strong>Stock Count Differences:</strong> Physical count vs system</li>
+                        <li><strong>Customer Returns:</strong> Items returned (add back to stock)</li>
+                        <li><strong>Expired Products:</strong> Perishable items past date</li>
+                    </ul>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Note:</strong> All adjustments are recorded in stock history with the reason.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

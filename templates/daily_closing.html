@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Daily Closing Report - {{ closing_date }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-dark text-white text-center">
+            <h2>LocalPOS - Daily Closing Report</h2>
+            <h4>{{ closing_date }}</h4>
+        </div>
+        <div class="card-body">
+            <!-- Summary Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5>Total Sales</h5>
+                            <h3>KSh {{ "%.2f"|format(total_sales) }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5>Total Profit</h5>
+                            <h3>KSh {{ "%.2f"|format(total_profit) }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stats Row -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5>Transactions</h5>
+                            <h3>{{ total_transactions }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-warning text-dark">
+                        <div class="card-body">
+                            <h5>Average Sale</h5>
+                            <h3>KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-secondary text-white">
+                        <div class="card-body">
+                            <h5>Total Items Sold</h5>
+                            <h3>
+                                {% set total_items = 0 %}
+                                {% for sale in sales %}
+                                    {% set total_items = total_items + (sale.items|length if sale.items else 0) %}
+                                {% endfor %}
+                                {{ total_items }}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Breakdown -->
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Payment Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="alert alert-success">
+                                <strong><i class="fas fa-money-bill"></i> Cash</strong><br>
+                                KSh {{ "%.2f"|format(cash_total) }}
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="alert alert-info">
+                                <strong><i class="fas fa-mobile-alt"></i> M-Pesa</strong><br>
+                                KSh {{ "%.2f"|format(mpesa_total) }}
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="alert alert-warning">
+                                <strong><i class="fas fa-credit-card"></i> Credit</strong><br>
+                                KSh {{ "%.2f"|format(credit_total) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Best Product -->
+            {% if best_product %}
+            <div class="alert alert-success text-center">
+                <strong>🏆 Best Selling Product:</strong> {{ best_product.name }} 
+                ({{ best_product.total_qty }} units sold)
+            </div>
+            {% endif %}
+            
+            <!-- Transaction Details -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Transaction Details</h5>
+                </div>
+                <div class="card-body">
+                    {% if sales %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Receipt #</th>
+                                    <th>Items</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Cashier</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in sales %}
+                                <tr>
+                                    <td>{{ sale.sale_date.strftime('%H:%M:%S') if sale.sale_date else 'N/A' }}</td>
+                                    <td>{{ sale.receipt_number }}</td>
+                                    <td>{{ sale.items|length if sale.items else 0 }} items</td>
+                                    <td>KSh {{ "%.2f"|format(sale.final_amount) }}</td>
+                                    <td>
+                                        <span class="badge {% if sale.payment_method == 'cash' %}bg-success{% elif sale.payment_method == 'mpesa' %}bg-info{% else %}bg-warning{% endif %}">
+                                            {{ sale.payment_method|upper }}
+                                        </span>
+                                    </td>
+                                    <td>{{ sale.user.username if sale.user else 'Unknown' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No transactions found for this date.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Footer Buttons -->
+            <div class="text-center mt-4">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
+                <button class="btn btn-success" onclick="window.location.href='{{ url_for('reports.reports_page') }}'">
+                    <i class="fas fa-chart-line"></i> More Reports
+                </button>
+                <a href="{{ url_for('dashboard.dashboard_home') }}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="card-footer text-muted text-center">
+            Generated on {{ now.strftime('%Y-%m-%d %H:%M:%S') if now else '' }}
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .navbar, .btn-close, .modal {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+    }
+    body {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
+</style>
+{% endblock %}

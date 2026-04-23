@@ -1,0 +1,116 @@
+/* Custom styles for LocalPOS */
+
+/* Mobile-friendly adjustments */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding: 10px;
+    }
+    
+    .btn {
+        margin-bottom: 5px;
+    }
+    
+    .card {
+        margin-bottom: 15px;
+    }
+    
+    /* Make tables scrollable on mobile */
+    .table-responsive-mobile {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Dashboard cards */
+.dashboard-card {
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Stock indicators */
+.stock-healthy {
+    color: green;
+    font-weight: bold;
+}
+
+.stock-low {
+    color: orange;
+    font-weight: bold;
+}
+
+.stock-critical {
+    color: red;
+    font-weight: bold;
+}
+
+/* POS Mode styling */
+.pos-mode .product-button {
+    padding: 15px;
+    margin: 5px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    transition: all 0.2s;
+}
+
+.pos-mode .product-button:hover {
+    background: #f8f9fa;
+    transform: scale(1.02);
+}
+
+.pos-mode .product-button:active {
+    background: #e9ecef;
+}
+
+/* Cart styling */
+.cart-item {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+/* Profit indicator */
+.profit-positive {
+    color: green;
+}
+
+.profit-negative {
+    color: red;
+}
+
+/* Debtor status badges */
+.badge-pending {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge-overdue {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.badge-paid {
+    background-color: #28a745;
+    color: #fff;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

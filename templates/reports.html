@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - LocalPOS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-chart-line"></i> Reports & Analytics
+    </h1>
+    
+    <div class="row">
+        <!-- Sales Reports Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Sales Reports</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('reports.sales_report') }}" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control" id="start_date">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" class="form-control" id="end_date">
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Report Type</label>
+                            <select name="type" class="form-select">
+                                <option value="sales">📊 Sales Summary</option>
+                                <option value="products">📦 Product Performance</option>
+                                <option value="categories">🏷️ Category Performance</option>
+                                <option value="users">👥 User Performance</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-chart-line"></i> Generate Report
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Export Data Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-download"></i> Export Data</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('reports.export_csv') }}" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" name="start_date" class="form-control" id="export_start">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date</label>
+                            <input type="date" name="end_date" class="form-control" id="export_end">
+                        </div>
+                        <div class="col-6">
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="fas fa-file-csv"></i> CSV Format
+                            </button>
+                        </div>
+                        <div class="col-6">
+                            <button type="submit" formaction="{{ url_for('reports.export_excel') }}" class="btn btn-success w-100">
+                                <i class="fas fa-file-excel"></i> Excel Format
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Daily Closing Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-sun"></i> Daily Closing Report</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('reports.daily_closing') }}" class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Select Date</label>
+                            <input type="date" name="date" class="form-control" id="closing_date">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">&nbsp;</label>
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </div>
+                    </form>
+                    <hr>
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle"></i> Daily closing shows total sales, profit, payment breakdown, and best selling product.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Help Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle"></i> Report Guide</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check-circle text-success"></i> <strong>Sales Summary</strong> - View all transactions in date range</li>
+                        <li><i class="fas fa-check-circle text-success"></i> <strong>Product Performance</strong> - See which products sell best</li>
+                        <li><i class="fas fa-check-circle text-success"></i> <strong>Category Performance</strong> - Analyze sales by category</li>
+                        <li><i class="fas fa-check-circle text-success"></i> <strong>User Performance</strong> - Track staff sales performance</li>
+                        <li><i class="fas fa-check-circle text-success"></i> <strong>Export</strong> - Download data as CSV or Excel</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set default dates
+const today = new Date();
+const thirtyDaysAgo = new Date();
+thirtyDaysAgo.setDate(today.getDate() - 30);
+
+// Format dates as YYYY-MM-DD
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Set default values for all date inputs
+document.getElementById('start_date').value = formatDate(thirtyDaysAgo);
+document.getElementById('end_date').value = formatDate(today);
+document.getElementById('export_start').value = formatDate(thirtyDaysAgo);
+document.getElementById('export_end').value = formatDate(today);
+document.getElementById('closing_date').value = formatDate(today);
+</script>
+{% endblock %}

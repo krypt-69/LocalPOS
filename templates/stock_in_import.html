@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Import Stock from File{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-file-upload"></i> Import Stock from File
+    </h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Upload CSV or Excel File</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('stock_in.preview_import') }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Select File</label>
+                            <input type="file" class="form-control" id="file" name="file" accept=".csv,.xlsx,.xls" required>
+                            <small class="text-muted">Supported formats: CSV, Excel (.xlsx, .xls)</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-eye"></i> Preview Import
+                        </button>
+                    </form>
+                    
+                    <hr>
+                    
+                    <h6>Required Columns:</h6>
+                    <ul>
+                        <li><strong>name</strong> - Product name</li>
+                        <li><strong>category</strong> - Category name</li>
+                        <li><strong>quantity</strong> - Number of items</li>
+                        <li><strong>buying_price</strong> - Cost price</li>
+                        <li><strong>selling_price</strong> - Selling price</li>
+                        <li><strong>supplier</strong> (optional) - Supplier name</li>
+                    </ul>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-download"></i> 
+                        <a href="#" id="downloadTemplate">Download Sample Template (CSV)</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            {% if preview %}
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Preview ({{ preview.rows }} rows found)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        {{ preview.html | safe }}
+                    </div>
+                    
+                    <form method="POST" action="{{ url_for('stock_in.confirm_import') }}">
+                        <input type="hidden" name="temp_file" value="{{ temp_file }}">
+                        <input type="hidden" name="file_type" value="{{ filename.split('.')[-1] }}">
+                        <button type="submit" class="btn btn-success mt-3">
+                            <i class="fas fa-check"></i> Confirm Import ({{ preview.rows }} products)
+                        </button>
+                        <a href="{{ url_for('stock_in.import_page') }}" class="btn btn-secondary mt-3">Cancel</a>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('downloadTemplate').addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    const template = 'name,category,quantity,buying_price,selling_price,supplier\n' +
+                    'Coca Cola,Drinks,50,45,70,Supplier A\n' +
+                    'Pepsi,Drinks,30,42,65,Supplier A\n' +
+                    'LG TV 43",Electronics,5,25000,35000,Electronics Ltd\n' +
+                    'Curtain Blue,Curtains,20,500,1200,Textile Co\n' +
+                    'T-Shirt Red,Clothes,100,300,500,Clothing Ltd';
+    
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'stock_import_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+});
+</script>
+{% endblock %}

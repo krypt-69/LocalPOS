@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-box"></i> {{ product.name }}
+        <a href="{{ url_for('stock_management.stock_list') }}" class="btn btn-secondary float-end">
+            <i class="fas fa-arrow-left"></i> Back to Stock
+        </a>
+    </h1>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Product Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Category:</strong> {{ product.category.name }}</p>
+                    <p><strong>Current Stock:</strong> 
+                        <span class="badge bg-{{ product.stock_status.color }}">{{ product.current_stock }} units</span>
+                    </p>
+                    <p><strong>Reorder Level:</strong> {{ product.reorder_level }}</p>
+                    <p><strong>Stock Status:</strong> {{ product.stock_status.text }}</p>
+                    <p><strong>Days Remaining:</strong> 
+                        {% if product.days_remaining == 999 %}
+                            No sales data
+                        {% else %}
+                            {{ product.days_remaining }} days
+                        {% endif %}
+                    </p>
+                    <hr>
+                    <p><strong>Buying Price:</strong> KSh {{ "%.2f"|format(product.buying_price) }}</p>
+                    <p><strong>Selling Price:</strong> KSh {{ "%.2f"|format(product.selling_price) }}</p>
+                    <p><strong>Profit per unit:</strong> 
+                        <span class="text-success">KSh {{ "%.2f"|format(product.selling_price - product.buying_price) }}</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Stock History (Last 10)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr><th>Date</th><th>Quantity</th><th>Buying Price</th><th>Supplier</th><th>User</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in stock_history %}
+                                <tr>
+                                    <td>{{ entry.entry_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td class="{% if entry.quantity < 0 %}text-danger{% else %}text-success{% endif %}">
+                                        {{ entry.quantity }}
+                                    </td>
+                                    <td>KSh {{ "%.2f"|format(entry.buying_price) }}</td>
+                                    <td>{{ entry.supplier or '-' }}</td>
+                                    <td>{{ entry.user.username }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5">No stock history</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Recent Sales (Last 10)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr><th>Date</th><th>Quantity</th><th>Price</th><th>Total</th><th>Receipt</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in recent_sales %}
+                                <tr>
+                                    <td>{{ item.sale.sale_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>KSh {{ "%.2f"|format(item.price_at_sale) }}</td>
+                                    <td>KSh {{ "%.2f"|format(item.total) }}</td>
+                                    <td>{{ item.sale.receipt_number }}</td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5">No sales recorded</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

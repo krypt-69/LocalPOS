@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Stock List{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-boxes"></i> Stock List
+        <a href="{{ url_for('stock_management.low_stock') }}" class="btn btn-warning float-end">
+            <i class="fas fa-exclamation-triangle"></i> Low Stock Alerts
+        </a>
+    </h1>
+    
+    <!-- Filters -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" value="{{ search }}" placeholder="Product name...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary d-block">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <a href="{{ url_for('stock_management.stock_list') }}" class="btn btn-secondary d-block">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Stock Table -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Reorder Level</th>
+                            <th>Status</th>
+                            <th>Days Remaining</th>
+                            <th>Buying Price</th>
+                            <th>Selling Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <strong>{{ product.name }}</strong>
+                                {% if product.image_filename %}
+                                <br><small class="text-muted">Has image</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ product.category.name }}</td>
+                            <td class="text-center">
+                                <strong>{{ product.current_stock }}</strong>
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('stock_management.update_reorder_level', product_id=product.id) }}" class="d-flex">
+                                    <input type="number" name="reorder_level" value="{{ product.reorder_level }}" 
+                                           class="form-control form-control-sm" style="width: 70px;">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary ms-1">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                </form>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ product.stock_status.color }}">
+                                    {{ product.stock_status.text }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if product.days_remaining == 999 %}
+                                    <span class="text-muted">No sales data</span>
+                                {% elif product.days_remaining <= 0 %}
+                                    <span class="text-danger">Out of stock</span>
+                                {% else %}
+                                    <span class="{% if product.days_remaining <= 3 %}text-danger{% elif product.days_remaining <= 7 %}text-warning{% else %}text-success{% endif %}">
+                                        {{ product.days_remaining }} days
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>KSh {{ "%.2f"|format(product.buying_price) }}</td>
+                            <td>KSh {{ "%.2f"|format(product.selling_price) }}</td>
+                            <td>
+                                <a href="{{ url_for('stock_management.product_detail', product_id=product.id) }}" 
+                                   class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('stock_management.adjust_stock', product_id=product.id) }}" 
+                                   class="btn btn-sm btn-warning">
+                                    <i class="fas fa-adjust"></i>
+                                </a>
+                                <a href="{{ url_for('stock_in.stock_in_page') }}" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="fas fa-plus"></i> Restock
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center">No products found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

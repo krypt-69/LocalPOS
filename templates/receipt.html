@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Receipt {{ sale.receipt_number }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card">
+        <div class="card-header bg-success text-white text-center">
+            <h3>LocalPOS</h3>
+            <p>Receipt #: {{ sale.receipt_number }}</p>
+            <p>{{ sale.sale_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        </div>
+        <div class="card-body">
+            {% if sale.customer_name %}
+            <div class="row mb-3">
+                <div class="col-12">
+                    <strong>Customer:</strong> {{ sale.customer_name }}<br>
+                    {% if sale.customer_phone %}<strong>Phone:</strong> {{ sale.customer_phone }}{% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <table class="table table-bordered">
+                <thead>
+                    <tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td class="text-center">{{ item.quantity }}</td>
+                        <td class="text-end">KSh {{ "%.2f"|format(item.price_at_sale) }}</td>
+                        <td class="text-end">KSh {{ "%.2f"|format(item.total) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr><td colspan="3" class="text-end"><strong>Subtotal:</strong></td><td class="text-end">KSh {{ "%.2f"|format(sale.total_amount) }}</td></tr>
+                    {% if sale.discount > 0 %}
+                    <tr><td colspan="3" class="text-end"><strong>Discount:</strong></td><td class="text-end">- KSh {{ "%.2f"|format(sale.discount) }}</td></tr>
+                    {% endif %}
+                    <tr><td colspan="3" class="text-end"><strong>Total:</strong></td><td class="text-end"><strong>KSh {{ "%.2f"|format(sale.final_amount) }}</strong></td></tr>
+                    <tr><td colspan="3" class="text-end"><strong>Amount Paid:</strong></td><td class="text-end">KSh {{ "%.2f"|format(sale.amount_paid) }}</td></tr>
+                    {% if sale.balance > 0 %}
+                    <tr><td colspan="3" class="text-end"><strong>Balance Due:</strong></td><td class="text-end text-danger">KSh {{ "%.2f"|format(sale.balance) }}</td></tr>
+                    {% endif %}
+                    <tr><td colspan="3" class="text-end"><strong>Payment Method:</strong></td><td class="text-end">{{ sale.payment_method|upper }}</td></tr>
+                </tfoot>
+            </table>
+            
+            <div class="text-center mt-4">
+                <p><strong>Cashier:</strong> {{ sale.user.username }}</p>
+                <p>Thank you for shopping with us!</p>
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Print Receipt
+                </button>
+                <a href="{{ url_for('stock_out.stock_out_page') }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> New Sale
+                </a>
+                <a href="{{ url_for('dashboard.dashboard_home') }}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

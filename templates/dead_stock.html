@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Dead Stock - Non-moving Items{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-skull"></i> Dead Stock Report
+    </h1>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> Products that haven't sold in the last 30 days.
+        Consider discounts or removing these items.
+    </div>
+    
+    <div class="card">
+        <div class="card-body">
+            {% if products %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Value at Risk</th>
+                            <th>Days Unsold</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td><strong>{{ product.name }}</strong></td>
+                            <td>{{ product.category.name }}</td>
+                            <td>{{ product.current_stock }}</td>
+                            <td class="text-danger">
+                                KSh {{ "%.2f"|format(product.current_stock * product.buying_price) }}
+                            </td>
+                            <td>
+                                <span class="badge bg-danger">{{ product.days_unsold }}+ days</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('stock_management.adjust_stock', product_id=product.id) }}" 
+                                   class="btn btn-sm btn-warning">
+                                    <i class="fas fa-tags"></i> Discount/Sell
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> No dead stock! All products are selling well.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

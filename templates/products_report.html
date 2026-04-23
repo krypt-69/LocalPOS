@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Products Performance Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-box"></i> Products Performance Report
+        <small class="text-muted">{{ start_date }} to {{ end_date }}</small>
+    </h1>
+    
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Product Performance</h5>
+        </div>
+        <div class="card-body">
+            {% if products %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Units Sold</th>
+                            <th>Revenue</th>
+                            <th>Current Stock</th>
+                            <th>Profit/Unit</th>
+                            <th>Total Profit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        {% set profit_per_unit = product.selling_price - product.buying_price %}
+                        {% set total_profit = product.total_sold * profit_per_unit if product.total_sold else 0 %}
+                        <tr>
+                            <td><strong>{{ product.name }}</strong></td>
+                            <td>{{ product.category }}</td>
+                            <td>{{ product.total_sold or 0 }} units</td>
+                            <td>KSh {{ "%.2f"|format(product.total_revenue or 0) }}</td>
+                            <td>{{ product.current_stock }} units</td>
+                            <td class="text-success">KSh {{ "%.2f"|format(profit_per_unit) }}</td>
+                            <td class="text-success">KSh {{ "%.2f"|format(total_profit) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-info">
+                        <tr>
+                            <td colspan="2"><strong>Totals</strong></td>
+                            <td><strong>{{ products|sum(attribute='total_sold') or 0 }}</strong></td>
+                            <td><strong>KSh {{ "%.2f"|format(products|sum(attribute='total_revenue') or 0) }}</strong></td>
+                            <td colspan="3"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">No products sold in this period</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print Report
+        </button>
+        <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+{% endblock %}

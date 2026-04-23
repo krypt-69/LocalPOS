@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Low Stock Alerts{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-exclamation-triangle text-warning"></i> Low Stock Alerts
+    </h1>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h3>{{ critical_count }}</h3>
+                    <p class="mb-0">Critical Stock (Out of Stock)</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h3>{{ low_count }}</h3>
+                    <p class="mb-0">Low Stock (Below Reorder Level)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Low Stock Table -->
+    <div class="card">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0">Products Needing Restock</h5>
+        </div>
+        <div class="card-body">
+            {% if products %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Current Stock</th>
+                            <th>Reorder Level</th>
+                            <th>Status</th>
+                            <th>Days Remaining</th>
+                            <th>Suggested Restock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr class="{% if product.current_stock == 0 %}table-danger{% else %}table-warning{% endif %}">
+                            <td>
+                                <strong>{{ product.name }}</strong>
+                            </td>
+                            <td>{{ product.category.name }}</td>
+                            <td class="text-center">
+                                <strong class="{% if product.current_stock == 0 %}text-danger{% else %}text-warning{% endif %}">
+                                    {{ product.current_stock }}
+                                </strong>
+                            </td>
+                            <td>{{ product.reorder_level }}</td>
+                            <td>
+                                <span class="badge bg-{{ product.stock_status.color }}">
+                                    {{ product.stock_status.text }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if product.days_remaining == 999 %}
+                                    <span class="text-muted">No sales data</span>
+                                {% else %}
+                                    <span class="text-danger">{{ product.days_remaining }} days</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <strong>{{ product.suggested_restock }}</strong> units
+                                <br>
+                                <small class="text-muted">Covers {{ product.reorder_level * 2 }} units</small>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('stock_in.stock_in_page') }}" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="fas fa-arrow-down"></i> Quick Restock
+                                </a>
+                                <a href="{{ url_for('stock_management.adjust_stock', product_id=product.id) }}" 
+                                   class="btn btn-sm btn-warning">
+                                    <i class="fas fa-adjust"></i> Adjust
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle"></i> No low stock items! All stock levels are healthy.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

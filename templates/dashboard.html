@@ -1,0 +1,604 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Dashboard Layout ────────────────────────────────── */
+.dashboard-date {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    margin-top: 3px;
+}
+
+/* ── Stat Cards ──────────────────────────────────────── */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    cursor: pointer;
+}
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+}
+.stat-icon {
+    width: 46px; height: 46px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+}
+.stat-icon.blue   { background: var(--accent-soft);  color: var(--accent); }
+.stat-icon.green  { background: var(--success-soft); color: var(--success); }
+.stat-icon.orange { background: var(--warning-soft); color: var(--warning); }
+.stat-icon.red    { background: var(--danger-soft);  color: var(--danger); }
+
+.stat-info { flex: 1; min-width: 0; }
+.stat-value {
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+.stat-sub {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ── Charts Row ──────────────────────────────────────── */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.payment-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--border);
+    margin-top: 14px;
+    padding-top: 14px;
+    text-align: center;
+}
+.payment-breakdown-item {
+    padding: 4px 8px;
+    border-right: 1px solid var(--border);
+}
+.payment-breakdown-item:last-child { border-right: none; }
+.payment-breakdown-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+}
+.payment-breakdown-value {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Bottom Row ──────────────────────────────────────── */
+.bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+/* ── Top Products List ───────────────────────────────── */
+.product-rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.product-rank-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+.product-rank-item:last-child { border-bottom: none; }
+.rank-number {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+.rank-number.top { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.rank-name {
+    flex: 1;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+.rank-sold {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 10px;
+    white-space: nowrap;
+}
+
+/* ── Recent Sales Table ──────────────────────────────── */
+.receipt-badge {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+}
+.method-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+.method-cash   { background: var(--success-soft); color: var(--success); }
+.method-mpesa  { background: var(--info-soft);    color: var(--info); }
+.method-credit { background: var(--warning-soft); color: var(--warning); }
+
+/* ── Quick Actions ───────────────────────────────────── */
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    text-align: center;
+}
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    color: var(--text-primary);
+}
+.action-btn:hover .action-icon { transform: scale(1.08); }
+.action-icon {
+    width: 44px; height: 44px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px;
+    transition: transform 0.15s;
+}
+.action-btn.blue  { border-color: transparent; }
+.action-btn.blue:hover  { border-color: var(--accent);   box-shadow: 0 0 0 3px var(--accent-soft); }
+.action-btn.green:hover { border-color: var(--success);  box-shadow: 0 0 0 3px var(--success-soft); }
+.action-btn.orange:hover{ border-color: var(--warning);  box-shadow: 0 0 0 3px var(--warning-soft); }
+.action-btn.red:hover   { border-color: var(--danger);   box-shadow: 0 0 0 3px var(--danger-soft); }
+
+/* ── Empty states ────────────────────────────────────── */
+.empty-state {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.empty-state i { font-size: 26px; opacity: 0.3; }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+    .actions-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 700px) {
+    .stats-grid  { grid-template-columns: 1fr 1fr; }
+    .bottom-grid { grid-template-columns: 1fr; }
+    .actions-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 420px) {
+    .stats-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Dashboard</h1>
+        <div class="dashboard-date">
+            <i class="fas fa-calendar-day" style="margin-right:5px;"></i>
+            {{ now.strftime('%A, %d %B %Y') if now else '' }}
+        </div>
+    </div>
+</div>
+
+<!-- ── Stat Cards ──────────────────────────────────────── -->
+<div class="stats-grid">
+
+    <div class="stat-card" onclick="location.href='{{ url_for('stock_out.stock_out_page') }}'">
+        <div class="stat-icon blue">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Today's Sales</div>
+            <div class="stat-value">KSh {{ "%.2f"|format(today_sales) }}</div>
+            <div class="stat-sub">{{ today_transactions }} transaction{{ 's' if today_transactions != 1 else '' }}</div>
+        </div>
+    </div>
+
+    <div class="stat-card" onclick="location.href='{{ url_for('reports.reports_page') }}'">
+        <div class="stat-icon green">
+            <i class="fas fa-circle-dollar-to-slot"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Today's Profit</div>
+            <div class="stat-value">KSh {{ "%.2f"|format(today_profit) }}</div>
+            <div class="stat-sub">Gross profit</div>
+        </div>
+    </div>
+
+    <div class="stat-card" onclick="location.href='{{ url_for('stock_management.low_stock') }}'">
+        <div class="stat-icon orange">
+            <i class="fas fa-triangle-exclamation"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Low Stock Alerts</div>
+            <div class="stat-value">{{ low_stock_count }}</div>
+            <div class="stat-sub">{{ critical_count }} critical</div>
+        </div>
+    </div>
+
+    <div class="stat-card" onclick="location.href='{{ url_for('debtors.debtors_list') }}'">
+        <div class="stat-icon red">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Outstanding Debt</div>
+            <div class="stat-value">KSh {{ "%.2f"|format(total_debt) }}</div>
+            <div class="stat-sub">{{ overdue_debts }} overdue</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Charts Row ──────────────────────────────────────── -->
+<div class="charts-grid">
+
+    <!-- Payment Methods -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-header-title">Payment Methods — Today</span>
+        </div>
+        <div class="card-body">
+            <canvas id="paymentChart" height="180"></canvas>
+            <div class="payment-breakdown">
+                <div class="payment-breakdown-item">
+                    <div class="payment-breakdown-label">Cash</div>
+                    <div class="payment-breakdown-value">{{ "%.0f"|format(cash_today) }}</div>
+                </div>
+                <div class="payment-breakdown-item">
+                    <div class="payment-breakdown-label">M-Pesa</div>
+                    <div class="payment-breakdown-value">{{ "%.0f"|format(mpesa_today) }}</div>
+                </div>
+                <div class="payment-breakdown-item">
+                    <div class="payment-breakdown-label">Credit</div>
+                    <div class="payment-breakdown-value">{{ "%.0f"|format(credit_today) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales Trend -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-header-title">Sales Trend — Last 7 Days</span>
+        </div>
+        <div class="card-body">
+            <canvas id="salesTrendChart" height="180"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Bottom Row ──────────────────────────────────────── -->
+<div class="bottom-grid">
+
+    <!-- Top Products -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-header-title">Top Selling Products</span>
+            <span style="font-size:11.5px; color:var(--text-muted);">This week</span>
+        </div>
+        <div class="card-body">
+            {% if top_products %}
+            <div class="product-rank-list">
+                {% for product in top_products %}
+                <div class="product-rank-item">
+                    <div class="rank-number {{ 'top' if loop.index <= 3 else '' }}">
+                        {{ loop.index }}
+                    </div>
+                    <span class="rank-name">{{ product.name }}</span>
+                    <span class="rank-sold">{{ product.total_quantity }} sold</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <span>No sales recorded this week</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Sales -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-header-title">Recent Sales</span>
+            <a href="{{ url_for('reports.reports_page') }}"
+               style="font-size:12px; color:var(--accent); text-decoration:none; font-weight:500;">
+                View all <i class="fas fa-arrow-right" style="font-size:10px;"></i>
+            </a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            {% if recent_sales %}
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Receipt</th>
+                            <th>Time</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in recent_sales %}
+                        <tr>
+                            <td>
+                                <span class="receipt-badge">{{ sale.receipt_number }}</span>
+                            </td>
+                            <td style="color:var(--text-secondary); font-variant-numeric:tabular-nums;">
+                                {{ sale.sale_date.strftime('%H:%M') }}
+                            </td>
+                            <td style="font-weight:600; font-variant-numeric:tabular-nums;">
+                                KSh {{ "%.2f"|format(sale.final_amount) }}
+                            </td>
+                            <td>
+                                <span class="method-badge method-{{ sale.payment_method }}">
+                                    {{ sale.payment_method }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-receipt"></i>
+                <span>No sales recorded today</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Quick Actions ───────────────────────────────────── -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title">Quick Actions</span>
+    </div>
+    <div class="card-body">
+        <div class="actions-grid">
+
+            <a href="{{ url_for('stock_in.stock_in_page') }}" class="action-btn blue">
+                <div class="action-icon" style="background:var(--accent-soft); color:var(--accent);">
+                    <i class="fas fa-arrow-down-to-line"></i>
+                </div>
+                Stock In
+            </a>
+
+            <a href="{{ url_for('stock_out.stock_out_page') }}" class="action-btn green">
+                <div class="action-icon" style="background:var(--success-soft); color:var(--success);">
+                    <i class="fas fa-cash-register"></i>
+                </div>
+                New Sale
+            </a>
+
+            <a href="{{ url_for('stock_management.low_stock') }}" class="action-btn orange">
+                <div class="action-icon" style="background:var(--warning-soft); color:var(--warning);">
+                    <i class="fas fa-triangle-exclamation"></i>
+                </div>
+                Restock Alerts
+            </a>
+
+            <a href="{{ url_for('debtors.debtors_list') }}" class="action-btn red">
+                <div class="action-icon" style="background:var(--danger-soft); color:var(--danger);">
+                    <i class="fas fa-users"></i>
+                </div>
+                View Debtors
+            </a>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function () {
+    /* ── Chart theme helpers ────────────────────────── */
+    function cssVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function chartDefaults() {
+        const textColor    = cssVar('--text-secondary');
+        const borderColor  = cssVar('--border');
+        Chart.defaults.color = textColor;
+        Chart.defaults.borderColor = borderColor;
+        Chart.defaults.font.family = "'DM Sans', sans-serif";
+        Chart.defaults.font.size   = 12;
+    }
+    chartDefaults();
+
+    /* ── Payment Doughnut ───────────────────────────── */
+    const ctx1 = document.getElementById('paymentChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'doughnut',
+        data: {
+            labels: ['Cash', 'M-Pesa', 'Credit'],
+            datasets: [{
+                data: [{{ cash_today }}, {{ mpesa_today }}, {{ credit_today }}],
+                backgroundColor: [
+                    cssVar('--success'),
+                    cssVar('--info'),
+                    cssVar('--warning')
+                ],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 14,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        borderRadius: 3,
+                        useBorderRadius: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` KSh ${ctx.parsed.toLocaleString()}`
+                    }
+                }
+            }
+        }
+    });
+
+    /* ── Sales Trend Line ───────────────────────────── */
+    fetch('/dashboard/api/sales-trend')
+        .then(r => r.json())
+        .then(data => {
+            const ctx2 = document.getElementById('salesTrendChart').getContext('2d');
+            const accent = cssVar('--accent');
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.date),
+                    datasets: [{
+                        label: 'Sales (KSh)',
+                        data: data.map(d => d.sales),
+                        borderColor: accent,
+                        backgroundColor: accent + '18',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: accent,
+                        pointBorderColor: cssVar('--bg-surface'),
+                        pointBorderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` KSh ${ctx.parsed.y.toLocaleString()}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { maxTicksLimit: 7 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: cssVar('--border') },
+                            ticks: {
+                                callback: v => 'KSh ' + v.toLocaleString()
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+    /* ── Re-render charts on theme change ───────────── */
+    const observer = new MutationObserver(() => {
+        chartDefaults();
+    });
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+})();
+</script>
+
+{% endblock %}
