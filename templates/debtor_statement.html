@@ -1,90 +1,536 @@
 {% extends "base.html" %}
 
-{% block title %}Statement - {{ debtor.customer_name }}{% endblock %}
+{% block title %}Statement — {{ debtor.customer_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Statement Wrapper ───────────────────────────────── */
+.statement-page {
+    max-width: 780px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── Action Bar (screen only) ────────────────────────── */
+.statement-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.statement-actions-right {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* ── Statement Document ──────────────────────────────── */
+.statement-doc {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* ── Document Header ─────────────────────────────────── */
+.doc-header {
+    padding: 28px 32px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+.doc-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.doc-brand-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.doc-brand-icon {
+    width: 34px; height: 34px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.doc-brand-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+.doc-header-right {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.doc-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+}
+.doc-generated {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Customer Meta Strip ─────────────────────────────── */
+.doc-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+}
+.doc-meta-block {
+    padding: 18px 32px;
+}
+.doc-meta-block:first-child {
+    border-right: 1px solid var(--border);
+}
+.doc-meta-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+.doc-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin-bottom: 5px;
+    gap: 10px;
+}
+.doc-meta-row:last-child { margin-bottom: 0; }
+.doc-meta-key   { color: var(--text-secondary); font-weight: 500; }
+.doc-meta-val   {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+.doc-meta-val.danger  { color: var(--danger); }
+.doc-meta-val.success { color: var(--success); }
+
+/* ── Balance Summary Bar ─────────────────────────────── */
+.balance-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--border);
+}
+.balance-bar-item {
+    padding: 16px 20px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+}
+.balance-bar-item:last-child { border-right: none; }
+.balance-bar-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+.balance-bar-value {
+    font-size: 17px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+}
+.balance-bar-value.danger  { color: var(--danger); }
+.balance-bar-value.success { color: var(--success); }
+
+/* ── Section ─────────────────────────────────────────── */
+.doc-section {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+}
+.doc-section:last-child { border-bottom: none; }
+.doc-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.doc-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ── Statement Table ─────────────────────────────────── */
+.stmt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+}
+.stmt-table thead tr {
+    background: var(--bg-surface-2);
+}
+.stmt-table thead th {
+    padding: 9px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.stmt-table tbody td {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+.stmt-table tbody tr:last-child td { border-bottom: none; }
+.stmt-table tbody tr:hover { background: var(--bg-surface-2); }
+.stmt-table tfoot td {
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--bg-surface-2);
+    border-top: 2px solid var(--border);
+    font-variant-numeric: tabular-nums;
+}
+
+.col-right { text-align: right; font-variant-numeric: tabular-nums; }
+.col-center { text-align: center; }
+.col-payment { color: var(--success); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.method-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+.method-cash   { background: var(--success-soft); color: var(--success); }
+.method-mpesa  { background: var(--info-soft);    color: var(--info); }
+.method-credit { background: var(--warning-soft); color: var(--warning); }
+
+.no-records {
+    padding: 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* ── Document Footer ─────────────────────────────────── */
+.doc-footer {
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-surface-2);
+}
+.doc-footer-note {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+.doc-footer-stamp {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+
+/* ── Print Styles ────────────────────────────────────── */
+@media print {
+    .statement-actions,
+    .topbar,
+    .page-wrapper > *:not(.statement-page) { display: none !important; }
+
+    body, .page-wrapper {
+        background: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .statement-page { max-width: 100%; gap: 0; }
+
+    .statement-doc {
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .doc-header,
+    .doc-meta-block,
+    .doc-section { padding: 16px 24px; }
+
+    .stmt-table tbody tr:hover { background: transparent; }
+
+    * {
+        color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 640px) {
+    .doc-header  { flex-direction: column; gap: 12px; }
+    .doc-header-right { text-align: left; }
+    .doc-meta    { grid-template-columns: 1fr; }
+    .doc-meta-block:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+    .balance-bar { grid-template-columns: 1fr; }
+    .balance-bar-item { border-right: none; border-bottom: 1px solid var(--border); }
+    .balance-bar-item:last-child { border-bottom: none; }
+    .doc-header,
+    .doc-meta-block,
+    .doc-section { padding: 16px 18px; }
+    .doc-footer  { flex-direction: column; align-items: flex-start; }
+    .doc-footer-stamp { text-align: left; }
+    .statement-actions { flex-direction: column; align-items: stretch; }
+    .statement-actions-right { justify-content: stretch; }
+    .statement-actions-right .btn { flex: 1; justify-content: center; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="card">
-        <div class="card-header bg-primary text-white text-center">
-            <h2>LocalPOS</h2>
-            <h4>Customer Statement</h4>
-            <p>{{ debtor.customer_name }} | {{ debtor.customer_phone or '' }}</p>
-            <p>Generated: {{ now.strftime('%Y-%m-%d %H:%M') if now else '' }}</p>
+
+<div class="statement-page">
+
+    <!-- ── Action Bar ────────────────────────────────── -->
+    <div class="statement-actions">
+        <a href="{{ url_for('debtors.debtor_profile', debtor_id=debtor.id) }}"
+           class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Profile
+        </a>
+        <div class="statement-actions-right">
+            <button class="btn btn-primary" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Statement
+            </button>
         </div>
-        <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-6">
-                    <strong>Date of Sale:</strong> {{ debtor.created_at.strftime('%Y-%m-%d') }}<br>
-                    <strong>Due Date:</strong> {{ debtor.due_date.strftime('%Y-%m-%d') if debtor.due_date else 'Not set' }}
+    </div>
+
+    <!-- ── Statement Document ────────────────────────── -->
+    <div class="statement-doc">
+
+        <!-- Header -->
+        <div class="doc-header">
+            <div class="doc-brand">
+                <div class="doc-brand-name">
+                    <div class="doc-brand-icon"><i class="fas fa-store"></i></div>
+                    LocalPOS
                 </div>
-                <div class="col-6 text-end">
-                    <strong>Total Owed:</strong> KSh {{ "%.2f"|format(debtor.total_owed) }}<br>
-                    <strong>Total Paid:</strong> KSh {{ "%.2f"|format(debtor.amount_paid) }}<br>
-                    <strong>Balance:</strong> KSh {{ "%.2f"|format(debtor.balance) }}
+                <div class="doc-brand-sub">Point of Sale System</div>
+            </div>
+            <div class="doc-header-right">
+                <div class="doc-title">Customer Statement</div>
+                <div class="doc-generated" id="generatedTime">
+                    Generated: {{ now.strftime('%d %b %Y, %H:%M') if now else '' }}
                 </div>
             </div>
-            
-            <h5>Purchase Details</h5>
-            <table class="table table-bordered">
+        </div>
+
+        <!-- Customer + Date Meta -->
+        <div class="doc-meta">
+            <div class="doc-meta-block">
+                <div class="doc-meta-label">Customer Details</div>
+                <div class="doc-meta-row">
+                    <span class="doc-meta-key">Name</span>
+                    <span class="doc-meta-val">{{ debtor.customer_name }}</span>
+                </div>
+                <div class="doc-meta-row">
+                    <span class="doc-meta-key">Phone</span>
+                    <span class="doc-meta-val">
+                        {{ debtor.customer_phone or '—' }}
+                    </span>
+                </div>
+            </div>
+            <div class="doc-meta-block">
+                <div class="doc-meta-label">Account Dates</div>
+                <div class="doc-meta-row">
+                    <span class="doc-meta-key">Sale Date</span>
+                    <span class="doc-meta-val">
+                        {{ debtor.created_at.strftime('%d %b %Y') }}
+                    </span>
+                </div>
+                <div class="doc-meta-row">
+                    <span class="doc-meta-key">Due Date</span>
+                    <span class="doc-meta-val
+                        {% if debtor.due_date and debtor.due_date < today %}danger{% endif %}">
+                        {% if debtor.due_date %}
+                            {{ debtor.due_date.strftime('%d %b %Y') }}
+                            {% if debtor.due_date < today %}(Overdue){% endif %}
+                        {% else %}
+                            Not set
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Summary Bar -->
+        <div class="balance-bar">
+            <div class="balance-bar-item">
+                <div class="balance-bar-label">Total Owed</div>
+                <div class="balance-bar-value">
+                    KSh {{ "%.2f"|format(debtor.total_owed) }}
+                </div>
+            </div>
+            <div class="balance-bar-item">
+                <div class="balance-bar-label">Total Paid</div>
+                <div class="balance-bar-value success">
+                    KSh {{ "%.2f"|format(debtor.amount_paid) }}
+                </div>
+            </div>
+            <div class="balance-bar-item">
+                <div class="balance-bar-label">Outstanding Balance</div>
+                <div class="balance-bar-value danger">
+                    KSh {{ "%.2f"|format(debtor.balance) }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Purchase Details -->
+        <div class="doc-section">
+            <div class="doc-section-title">
+                <i class="fas fa-basket-shopping"></i> Purchase Details
+            </div>
+            <table class="stmt-table">
                 <thead>
-                    <tr><th>Item</th><th>Quantity</th><th>Price</th><th>Total</th></tr>
+                    <tr>
+                        <th>Item</th>
+                        <th class="col-center">Qty</th>
+                        <th class="col-right">Unit Price</th>
+                        <th class="col-right">Total</th>
+                    </tr>
                 </thead>
                 <tbody>
                     {% for item in sale_items %}
                     <tr>
-                        <td>{{ item.product.name }}</td>
-                        <td class="text-center">{{ item.quantity }}</td>
-                        <td class="text-end">KSh {{ "%.2f"|format(item.price_at_sale) }}</td>
-                        <td class="text-end">KSh {{ "%.2f"|format(item.total) }}</td>
+                        <td style="font-weight:500;">{{ item.product.name }}</td>
+                        <td class="col-center" style="color:var(--text-secondary);">
+                            {{ item.quantity }}
+                        </td>
+                        <td class="col-right">
+                            KSh {{ "%.2f"|format(item.price_at_sale) }}
+                        </td>
+                        <td class="col-right" style="font-weight:600;">
+                            KSh {{ "%.2f"|format(item.total) }}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
-                    <tr class="table-dark">
-                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                        <td class="text-end"><strong>KSh {{ "%.2f"|format(sale.total_amount if sale else 0) }}</strong></td>
+                    <tr>
+                        <td colspan="3" class="col-right">Grand Total</td>
+                        <td class="col-right">
+                            KSh {{ "%.2f"|format(sale.total_amount if sale else 0) }}
+                        </td>
                     </tr>
                 </tfoot>
             </table>
-            
-            <h5 class="mt-4">Payment History</h5>
-            <table class="table table-bordered">
+        </div>
+
+        <!-- Payment History -->
+        <div class="doc-section">
+            <div class="doc-section-title">
+                <i class="fas fa-receipt"></i> Payment History
+            </div>
+            <table class="stmt-table">
                 <thead>
-                    <tr><th>Date</th><th>Amount</th><th>Method</th><th>Notes</th></tr>
+                    <tr>
+                        <th>Date</th>
+                        <th class="col-right">Amount</th>
+                        <th>Method</th>
+                        <th>Notes</th>
+                    </tr>
                 </thead>
                 <tbody>
-                    {% for payment in payments %}
-                    <tr>
-                        <td>{{ payment.payment_date.strftime('%Y-%m-%d') }}</td>
-                        <td class="text-success">KSh {{ "%.2f"|format(payment.amount) }}</td>
-                        <td>{{ payment.payment_method|upper }}</td>
-                        <td>{{ payment.notes or '-' }}</td>
-                    </tr>
-                    {% endfor %}
-                    {% if not payments %}
-                    <tr><td colspan="4" class="text-center">No payments recorded</td></tr>
+                    {% if payments %}
+                        {% for payment in payments %}
+                        <tr>
+                            <td style="color:var(--text-secondary); font-variant-numeric:tabular-nums;">
+                                {{ payment.payment_date.strftime('%d %b %Y') }}
+                            </td>
+                            <td class="col-right col-payment">
+                                KSh {{ "%.2f"|format(payment.amount) }}
+                            </td>
+                            <td>
+                                <span class="method-badge method-{{ payment.payment_method }}">
+                                    {{ payment.payment_method }}
+                                </span>
+                            </td>
+                            <td style="font-size:12.5px; color:var(--text-muted);">
+                                {{ payment.notes or '—' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="no-records">
+                                No payments recorded yet
+                            </td>
+                        </tr>
                     {% endif %}
                 </tbody>
             </table>
-            
-            <div class="text-center mt-4">
-                <button class="btn btn-primary" onclick="window.print()">
-                    <i class="fas fa-print"></i> Print Statement
-                </button>
-                <a href="{{ url_for('debtors.debtor_profile', debtor_id=debtor.id) }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Profile
-                </a>
-            </div>
         </div>
+
+        <!-- Document Footer -->
+        <div class="doc-footer">
+            <div class="doc-footer-note">
+                This is a computer-generated statement and requires no signature.<br>
+                For queries, please contact LocalPOS support.
+            </div>
+            <div class="doc-footer-stamp" id="footerStamp"></div>
+        </div>
+
     </div>
 </div>
 
 <script>
-// Add current date to template context
-document.addEventListener('DOMContentLoaded', function() {
+(function () {
     const now = new Date();
-    document.querySelector('.card-header p:last-child').innerHTML = 
-        `Generated: ${now.toLocaleString()}`;
-});
+    const fmt = now.toLocaleString('en-KE', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+    });
+    const el = document.getElementById('generatedTime');
+    if (el) el.textContent = 'Generated: ' + fmt;
+
+    const stamp = document.getElementById('footerStamp');
+    if (stamp) stamp.textContent = 'Printed: ' + fmt;
+})();
 </script>
+
 {% endblock %}

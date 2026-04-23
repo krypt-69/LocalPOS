@@ -1,184 +1,629 @@
+
 {% extends "base.html" %}
 
-{% block title %}Daily Closing Report - {{ closing_date }}{% endblock %}
+{% block title %}Daily Closing Report — {{ closing_date }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ── Report-specific layout ─────────────────────────── */
+    .report-header {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: 22px 24px;
+        margin-bottom: 22px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .report-header-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .report-icon {
+        width: 46px;
+        height: 46px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .report-title-block .report-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.3px;
+        line-height: 1.2;
+    }
+
+    .report-title-block .report-meta {
+        font-size: 12.5px;
+        color: var(--text-secondary);
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .report-meta .dot {
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: var(--text-muted);
+    }
+
+    .report-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    /* ── KPI grid ───────────────────────────────────────── */
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    .kpi-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 18px 20px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kpi-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    .kpi-card.kpi-blue::after   { background: var(--accent); }
+    .kpi-card.kpi-green::after  { background: var(--success); }
+    .kpi-card.kpi-orange::after { background: var(--warning); }
+    .kpi-card.kpi-teal::after   { background: var(--info); }
+
+    .kpi-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .kpi-card.kpi-blue   .kpi-icon { background: var(--accent-soft);  color: var(--accent); }
+    .kpi-card.kpi-green  .kpi-icon { background: var(--success-soft); color: var(--success); }
+    .kpi-card.kpi-orange .kpi-icon { background: var(--warning-soft); color: var(--warning); }
+    .kpi-card.kpi-teal   .kpi-icon { background: var(--info-soft);    color: var(--info); }
+
+    .kpi-body .kpi-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        margin-bottom: 5px;
+    }
+
+    .kpi-body .kpi-value {
+        font-size: 21px;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.5px;
+        line-height: 1.1;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .kpi-body .kpi-sub {
+        font-size: 11.5px;
+        color: var(--text-muted);
+        margin-top: 3px;
+    }
+
+    /* ── Two-column middle row ──────────────────────────── */
+    .mid-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    /* ── Payment breakdown ──────────────────────────────── */
+    .payment-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0;
+    }
+
+    .payment-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 11px 14px;
+        border-radius: var(--radius-md);
+        background: var(--bg-surface-2);
+        border: 1px solid var(--border);
+        gap: 10px;
+    }
+
+    .payment-row-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .payment-method-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    .pm-cash    { background: var(--success-soft); color: var(--success); }
+    .pm-mpesa   { background: var(--info-soft);    color: var(--info); }
+    .pm-credit  { background: var(--warning-soft); color: var(--warning); }
+
+    .payment-method-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .payment-method-pct {
+        font-size: 11.5px;
+        color: var(--text-secondary);
+        margin-top: 1px;
+    }
+
+    .payment-amount {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-primary);
+        font-variant-numeric: tabular-nums;
+        font-family: var(--font-mono);
+    }
+
+    /* ── Best seller banner ─────────────────────────────── */
+    .best-seller-banner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 16px;
+        background: var(--success-soft);
+        border: 1px solid var(--success);
+        border-radius: var(--radius-md);
+        margin-bottom: 20px;
+    }
+
+    .best-seller-banner .bs-icon {
+        width: 34px;
+        height: 34px;
+        background: var(--success);
+        color: #fff;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .best-seller-banner .bs-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--success);
+        margin-bottom: 2px;
+    }
+
+    .best-seller-banner .bs-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .best-seller-banner .bs-units {
+        margin-left: auto;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    .best-seller-banner .bs-units .units-val {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--success);
+        font-variant-numeric: tabular-nums;
+        line-height: 1;
+    }
+
+    .best-seller-banner .bs-units .units-lbl {
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-top: 2px;
+    }
+
+    /* ── Transaction table enhancements ─────────────────── */
+    .receipt-num {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        color: var(--text-secondary);
+    }
+
+    .time-cell {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        color: var(--text-secondary);
+    }
+
+    .amount-cell {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    /* ── Report footer ──────────────────────────────────── */
+    .report-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 18px;
+        border-top: 1px solid var(--border);
+        background: var(--bg-surface-2);
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        font-size: 12px;
+        color: var(--text-muted);
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .report-footer i { font-size: 11px; }
+
+    /* ── Empty state ────────────────────────────────────── */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-secondary);
+    }
+    .empty-state i {
+        font-size: 32px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+    }
+    .empty-state p {
+        font-size: 13.5px;
+        margin: 0;
+    }
+
+    /* ── Section heading ────────────────────────────────── */
+    .section-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+    }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 900px) {
+        .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        .mid-grid  { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 540px) {
+        .kpi-grid { grid-template-columns: 1fr 1fr; }
+        .report-header { flex-direction: column; gap: 12px; }
+        .report-actions { width: 100%; }
+        .report-actions .btn { flex: 1; justify-content: center; }
+    }
+
+    @media (max-width: 360px) {
+        .kpi-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Print ──────────────────────────────────────────── */
+    @media print {
+        .report-actions,
+        .topbar,
+        .mobile-drawer,
+        .mobile-overlay { display: none !important; }
+
+        .page-wrapper { margin-top: 0 !important; padding: 0 !important; }
+        .card, .kpi-card, .report-header { box-shadow: none !important; }
+        body { background: #fff !important; color: #000 !important; }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="card">
-        <div class="card-header bg-dark text-white text-center">
-            <h2>LocalPOS - Daily Closing Report</h2>
-            <h4>{{ closing_date }}</h4>
+
+{# ── Compute totals ─────────────────────────────────────── #}
+{% set total_items = namespace(value=0) %}
+{% for sale in sales %}
+    {% set total_items.value = total_items.value + (sale.items|length if sale.items else 0) %}
+{% endfor %}
+{% set grand_total = cash_total + mpesa_total + credit_total %}
+
+{# ── Report Header ──────────────────────────────────────── #}
+<div class="report-header">
+    <div class="report-header-left">
+        <div class="report-icon">
+            <i class="fas fa-file-invoice-dollar"></i>
         </div>
-        <div class="card-body">
-            <!-- Summary Section -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body">
-                            <h5>Total Sales</h5>
-                            <h3>KSh {{ "%.2f"|format(total_sales) }}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card bg-success text-white">
-                        <div class="card-body">
-                            <h5>Total Profit</h5>
-                            <h3>KSh {{ "%.2f"|format(total_profit) }}</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Stats Row -->
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <h5>Transactions</h5>
-                            <h3>{{ total_transactions }}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-warning text-dark">
-                        <div class="card-body">
-                            <h5>Average Sale</h5>
-                            <h3>KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-secondary text-white">
-                        <div class="card-body">
-                            <h5>Total Items Sold</h5>
-                            <h3>
-                                {% set total_items = 0 %}
-                                {% for sale in sales %}
-                                    {% set total_items = total_items + (sale.items|length if sale.items else 0) %}
-                                {% endfor %}
-                                {{ total_items }}
-                            </h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Payment Breakdown -->
-            <div class="card mb-4">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Payment Breakdown</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div class="alert alert-success">
-                                <strong><i class="fas fa-money-bill"></i> Cash</strong><br>
-                                KSh {{ "%.2f"|format(cash_total) }}
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="alert alert-info">
-                                <strong><i class="fas fa-mobile-alt"></i> M-Pesa</strong><br>
-                                KSh {{ "%.2f"|format(mpesa_total) }}
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="alert alert-warning">
-                                <strong><i class="fas fa-credit-card"></i> Credit</strong><br>
-                                KSh {{ "%.2f"|format(credit_total) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Best Product -->
-            {% if best_product %}
-            <div class="alert alert-success text-center">
-                <strong>🏆 Best Selling Product:</strong> {{ best_product.name }} 
-                ({{ best_product.total_qty }} units sold)
-            </div>
-            {% endif %}
-            
-            <!-- Transaction Details -->
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Transaction Details</h5>
-                </div>
-                <div class="card-body">
-                    {% if sales %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Time</th>
-                                    <th>Receipt #</th>
-                                    <th>Items</th>
-                                    <th>Amount</th>
-                                    <th>Method</th>
-                                    <th>Cashier</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for sale in sales %}
-                                <tr>
-                                    <td>{{ sale.sale_date.strftime('%H:%M:%S') if sale.sale_date else 'N/A' }}</td>
-                                    <td>{{ sale.receipt_number }}</td>
-                                    <td>{{ sale.items|length if sale.items else 0 }} items</td>
-                                    <td>KSh {{ "%.2f"|format(sale.final_amount) }}</td>
-                                    <td>
-                                        <span class="badge {% if sale.payment_method == 'cash' %}bg-success{% elif sale.payment_method == 'mpesa' %}bg-info{% else %}bg-warning{% endif %}">
-                                            {{ sale.payment_method|upper }}
-                                        </span>
-                                    </td>
-                                    <td>{{ sale.user.username if sale.user else 'Unknown' }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> No transactions found for this date.
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <!-- Footer Buttons -->
-            <div class="text-center mt-4">
-                <button class="btn btn-primary" onclick="window.print()">
-                    <i class="fas fa-print"></i> Print Report
-                </button>
-                <button class="btn btn-success" onclick="window.location.href='{{ url_for('reports.reports_page') }}'">
-                    <i class="fas fa-chart-line"></i> More Reports
-                </button>
-                <a href="{{ url_for('dashboard.dashboard_home') }}" class="btn btn-secondary">
-                    <i class="fas fa-home"></i> Dashboard
-                </a>
+        <div class="report-title-block">
+            <div class="report-title">Daily Closing Report</div>
+            <div class="report-meta">
+                <i class="fas fa-calendar-day" style="font-size:11px;"></i>
+                {{ closing_date }}
+                <span class="dot"></span>
+                <span>{{ total_transactions }} transaction{{ 's' if total_transactions != 1 else '' }}</span>
+                <span class="dot"></span>
+                <span>LocalPOS</span>
             </div>
         </div>
-        
-        <!-- Footer -->
-        <div class="card-footer text-muted text-center">
-            Generated on {{ now.strftime('%Y-%m-%d %H:%M:%S') if now else '' }}
+    </div>
+    <div class="report-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
+        </button>
+        <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary btn-sm">
+            <i class="fas fa-chart-line"></i> Reports
+        </a>
+        <a href="{{ url_for('dashboard.dashboard_home') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-gauge-high"></i> Dashboard
+        </a>
+    </div>
+</div>
+
+{# ── KPI Cards ──────────────────────────────────────────── #}
+<div class="kpi-grid">
+    <div class="kpi-card kpi-blue">
+        <div class="kpi-icon"><i class="fas fa-coins"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-label">Total Sales</div>
+            <div class="kpi-value">KSh {{ "%.2f"|format(total_sales) }}</div>
+            <div class="kpi-sub">Gross revenue</div>
+        </div>
+    </div>
+    <div class="kpi-card kpi-green">
+        <div class="kpi-icon"><i class="fas fa-arrow-trend-up"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-label">Total Profit</div>
+            <div class="kpi-value">KSh {{ "%.2f"|format(total_profit) }}</div>
+            <div class="kpi-sub">
+                {% if total_sales > 0 %}
+                    {{ "%.1f"|format((total_profit / total_sales) * 100) }}% margin
+                {% else %}
+                    — margin
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="kpi-card kpi-orange">
+        <div class="kpi-icon"><i class="fas fa-receipt"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-label">Transactions</div>
+            <div class="kpi-value">{{ total_transactions }}</div>
+            <div class="kpi-sub">
+                KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }} avg
+            </div>
+        </div>
+    </div>
+    <div class="kpi-card kpi-teal">
+        <div class="kpi-icon"><i class="fas fa-boxes-stacked"></i></div>
+        <div class="kpi-body">
+            <div class="kpi-label">Items Sold</div>
+            <div class="kpi-value">{{ total_items.value }}</div>
+            <div class="kpi-sub">Units dispatched</div>
         </div>
     </div>
 </div>
 
-<style>
-@media print {
-    .btn, .navbar, .btn-close, .modal {
-        display: none !important;
-    }
-    .card {
-        border: none !important;
-    }
-    body {
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-}
-</style>
+{# ── Middle Row: Payment Breakdown + Best Seller ────────── #}
+<div class="mid-grid">
+
+    {# Payment Breakdown #}
+    <div class="card">
+        <div class="card-header">
+            <span class="card-header-title"><i class="fas fa-wallet" style="color:var(--accent); margin-right:7px;"></i>Payment Breakdown</span>
+            <span class="badge badge-neutral">{{ total_transactions }} total</span>
+        </div>
+        <div class="card-body">
+            <div class="payment-list">
+                <div class="payment-row">
+                    <div class="payment-row-left">
+                        <div class="payment-method-icon pm-cash">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div>
+                            <div class="payment-method-name">Cash</div>
+                            <div class="payment-method-pct">
+                                {% if grand_total > 0 %}{{ "%.1f"|format((cash_total / grand_total) * 100) }}%{% else %}0%{% endif %}
+                                of total
+                            </div>
+                        </div>
+                    </div>
+                    <div class="payment-amount">KSh {{ "%.2f"|format(cash_total) }}</div>
+                </div>
+                <div class="payment-row">
+                    <div class="payment-row-left">
+                        <div class="payment-method-icon pm-mpesa">
+                            <i class="fas fa-mobile-screen-button"></i>
+                        </div>
+                        <div>
+                            <div class="payment-method-name">M-Pesa</div>
+                            <div class="payment-method-pct">
+                                {% if grand_total > 0 %}{{ "%.1f"|format((mpesa_total / grand_total) * 100) }}%{% else %}0%{% endif %}
+                                of total
+                            </div>
+                        </div>
+                    </div>
+                    <div class="payment-amount">KSh {{ "%.2f"|format(mpesa_total) }}</div>
+                </div>
+                <div class="payment-row">
+                    <div class="payment-row-left">
+                        <div class="payment-method-icon pm-credit">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div>
+                            <div class="payment-method-name">Credit</div>
+                            <div class="payment-method-pct">
+                                {% if grand_total > 0 %}{{ "%.1f"|format((credit_total / grand_total) * 100) }}%{% else %}0%{% endif %}
+                                of total
+                            </div>
+                        </div>
+                    </div>
+                    <div class="payment-amount">KSh {{ "%.2f"|format(credit_total) }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Summary / Best Seller panel #}
+    <div class="card">
+        <div class="card-header">
+            <span class="card-header-title"><i class="fas fa-chart-pie" style="color:var(--accent); margin-right:7px;"></i>Day Summary</span>
+        </div>
+        <div class="card-body">
+            {# Best Seller #}
+            {% if best_product %}
+            <div class="section-label">Top Performing Product</div>
+            <div class="best-seller-banner">
+                <div class="bs-icon"><i class="fas fa-medal"></i></div>
+                <div>
+                    <div class="bs-label">Best Seller</div>
+                    <div class="bs-name">{{ best_product.name }}</div>
+                </div>
+                <div class="bs-units">
+                    <div class="units-val">{{ best_product.total_qty }}</div>
+                    <div class="units-lbl">units sold</div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Quick stats #}
+            <div class="section-label" style="margin-top: {{ '16px' if best_product else '0' }};">Closing Figures</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:var(--bg-surface-2); border-radius:var(--radius-sm); border:1px solid var(--border);">
+                    <span style="font-size:13px; color:var(--text-secondary);">Gross Revenue</span>
+                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--accent);">KSh {{ "%.2f"|format(total_sales) }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:var(--bg-surface-2); border-radius:var(--radius-sm); border:1px solid var(--border);">
+                    <span style="font-size:13px; color:var(--text-secondary);">Net Profit</span>
+                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--success);">KSh {{ "%.2f"|format(total_profit) }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:var(--bg-surface-2); border-radius:var(--radius-sm); border:1px solid var(--border);">
+                    <span style="font-size:13px; color:var(--text-secondary);">Avg. Transaction</span>
+                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);">KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:var(--bg-surface-2); border-radius:var(--radius-sm); border:1px solid var(--border);">
+                    <span style="font-size:13px; color:var(--text-secondary);">Outstanding Credit</span>
+                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--warning);">KSh {{ "%.2f"|format(credit_total) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Transaction Details ─────────────────────────────────── #}
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title"><i class="fas fa-list-check" style="color:var(--accent); margin-right:7px;"></i>Transaction Details</span>
+        {% if sales %}
+        <span class="badge badge-neutral">{{ sales|length }} record{{ 's' if sales|length != 1 else '' }}</span>
+        {% endif %}
+    </div>
+    {% if sales %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Receipt #</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Cashier</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td class="time-cell">
+                        {{ sale.sale_date.strftime('%H:%M:%S') if sale.sale_date else 'N/A' }}
+                    </td>
+                    <td class="receipt-num">{{ sale.receipt_number }}</td>
+                    <td>
+                        <span style="font-size:13px;">{{ sale.items|length if sale.items else 0 }}</span>
+                        <span style="font-size:12px; color:var(--text-muted);">items</span>
+                    </td>
+                    <td class="amount-cell">KSh {{ "%.2f"|format(sale.final_amount) }}</td>
+                    <td>
+                        {% if sale.payment_method == 'cash' %}
+                            <span class="badge badge-success"><i class="fas fa-money-bill-wave"></i> Cash</span>
+                        {% elif sale.payment_method == 'mpesa' %}
+                            <span class="badge badge-info"><i class="fas fa-mobile-screen-button"></i> M-Pesa</span>
+                        {% else %}
+                            <span class="badge badge-warning"><i class="fas fa-credit-card"></i> Credit</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:7px;">
+                            <span style="width:22px; height:22px; background:var(--accent-soft); color:var(--accent); border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0;">
+                                {{ (sale.user.username[0]|upper) if sale.user else '?' }}
+                            </span>
+                            <span style="font-size:13px;">{{ sale.user.username if sale.user else 'Unknown' }}</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-receipt"></i>
+        <p>No transactions recorded for {{ closing_date }}.</p>
+    </div>
+    {% endif %}
+    <div class="report-footer">
+        <span><i class="fas fa-clock"></i> Generated {{ now.strftime('%Y-%m-%d at %H:%M:%S') if now else '' }}</span>
+        <span><i class="fas fa-store"></i> LocalPOS &mdash; Daily Closing Report</span>
+    </div>
+</div>
+
 {% endblock %}

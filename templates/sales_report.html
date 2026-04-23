@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">
+        <i class="fas fa-chart-line"></i> Sales Report
+        <small class="text-muted">{{ start_date }} to {{ end_date }}</small>
+    </h1>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6>Total Sales</h6>
+                    <h3>KSh {{ "%.2f"|format(total_sales) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6>Total Profit</h6>
+                    <h3>KSh {{ "%.2f"|format(total_profit) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6>Transactions</h6>
+                    <h3>{{ total_transactions }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h6>Average Sale</h6>
+                    <h3>KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Payment Breakdown -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">Payment Breakdown</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="alert alert-success">
+                                <strong>Cash</strong><br>
+                                KSh {{ "%.2f"|format(cash_total) }}
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="alert alert-info">
+                                <strong>M-Pesa</strong><br>
+                                KSh {{ "%.2f"|format(mpesa_total) }}
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="alert alert-warning">
+                                <strong>Credit</strong><br>
+                                KSh {{ "%.2f"|format(credit_total) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sales Table -->
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Transaction Details</h5>
+        </div>
+        <div class="card-body">
+            {% if sales %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Receipt #</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Payment</th>
+                            <th>Customer</th>
+                            <th>Cashier</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sale in sales %}
+                        <tr>
+                            <td>{{ sale.sale_date.strftime('%Y-%m-%d %H:%M') if sale.sale_date else 'N/A' }}</td>
+                            <td>{{ sale.receipt_number }}</td>
+                            <td>{{ sale.items|length if sale.items else 0 }} items</td>
+                            <td class="text-end">KSh {{ "%.2f"|format(sale.final_amount) }}</td>
+                            <td>
+                                <span class="badge {% if sale.payment_method == 'cash' %}bg-success{% elif sale.payment_method == 'mpesa' %}bg-info{% else %}bg-warning{% endif %}">
+                                    {{ sale.payment_method|upper }}
+                                </span>
+                            </td>
+                            <td>{{ sale.customer_name or 'Walk-in' }}</td>
+                            <td>{{ sale.user.username if sale.user else 'Unknown' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">No sales found in this period</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print Report
+        </button>
+        <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,146 +1,409 @@
 {% extends "base.html" %}
 
-{% block title %}Reports - LocalPOS{% endblock %}
+{% block title %}Reports & Analytics{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Reports Layout ──────────────────────────────────── */
+.reports-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* ── Report Card ─────────────────────────────────────── */
+.report-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+.report-card-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.report-card-icon {
+    width: 34px; height: 34px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.report-card-icon.blue   { background: var(--accent-soft);  color: var(--accent); }
+.report-card-icon.green  { background: var(--success-soft); color: var(--success); }
+.report-card-icon.orange { background: var(--warning-soft); color: var(--warning); }
+.report-card-icon.teal   { background: var(--info-soft);    color: var(--info); }
+
+.report-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.report-card-body {
+    padding: 20px 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ── Date Range Row ──────────────────────────────────── */
+.date-range-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* ── Report Type Selector ────────────────────────────── */
+.report-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.report-type-option {
+    display: none;
+}
+.report-type-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: background var(--transition), border-color var(--transition), color var(--transition);
+    user-select: none;
+}
+.report-type-label i {
+    font-size: 12px;
+    width: 14px;
+    text-align: center;
+    color: var(--text-muted);
+    transition: color var(--transition);
+}
+.report-type-option:checked + .report-type-label {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.report-type-option:checked + .report-type-label i {
+    color: var(--accent);
+}
+
+/* ── Export Buttons ──────────────────────────────────── */
+.export-btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* ── Daily Closing Row ───────────────────────────────── */
+.closing-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: end;
+}
+
+/* ── Info Note ───────────────────────────────────────── */
+.info-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 11px 13px;
+    background: var(--info-soft);
+    border: 1px solid var(--info);
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    color: var(--info);
+    line-height: 1.5;
+}
+.info-note i { margin-top: 1px; flex-shrink: 0; font-size: 12px; }
+
+/* ── Guide List ──────────────────────────────────────── */
+.guide-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+.guide-item:last-child { border-bottom: none; }
+.guide-dot {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--success-soft);
+    color: var(--success);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.guide-item-text strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1px;
+}
+.guide-item-text span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 800px) {
+    .reports-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+    .date-range-row   { grid-template-columns: 1fr; }
+    .report-type-grid { grid-template-columns: 1fr; }
+    .export-btn-row   { grid-template-columns: 1fr; }
+    .closing-row      { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4">
-        <i class="fas fa-chart-line"></i> Reports & Analytics
-    </h1>
-    
-    <div class="row">
-        <!-- Sales Reports Section -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Sales Reports</h5>
-                </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ url_for('reports.sales_report') }}" class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" name="start_date" class="form-control" id="start_date">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">End Date</label>
-                            <input type="date" name="end_date" class="form-control" id="end_date">
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label">Report Type</label>
-                            <select name="type" class="form-select">
-                                <option value="sales">📊 Sales Summary</option>
-                                <option value="products">📦 Product Performance</option>
-                                <option value="categories">🏷️ Category Performance</option>
-                                <option value="users">👥 User Performance</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-chart-line"></i> Generate Report
-                            </button>
-                        </div>
-                    </form>
-                </div>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Reports &amp; Analytics</h1>
+        <p class="page-subtitle">Generate, view and export business performance data</p>
+    </div>
+</div>
+
+<div class="reports-grid">
+
+    <!-- ── Sales Reports ────────────────────────────── -->
+    <div class="report-card">
+        <div class="report-card-header">
+            <div class="report-card-icon blue">
+                <i class="fas fa-chart-bar"></i>
             </div>
+            <span class="report-card-title">Sales Reports</span>
         </div>
-        
-        <!-- Export Data Section -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-download"></i> Export Data</h5>
+        <div class="report-card-body">
+            <form method="GET" action="{{ url_for('reports.sales_report') }}"
+                  style="display:flex; flex-direction:column; gap:14px; flex:1;">
+
+                <div class="date-range-row">
+                    <div class="form-group mb-0">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" class="form-control">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">End Date</label>
+                        <input type="date" name="end_date" id="end_date" class="form-control">
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ url_for('reports.export_csv') }}" class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Start Date</label>
-                            <input type="date" name="start_date" class="form-control" id="export_start">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">End Date</label>
-                            <input type="date" name="end_date" class="form-control" id="export_end">
-                        </div>
-                        <div class="col-6">
-                            <button type="submit" class="btn btn-info w-100">
-                                <i class="fas fa-file-csv"></i> CSV Format
-                            </button>
-                        </div>
-                        <div class="col-6">
-                            <button type="submit" formaction="{{ url_for('reports.export_excel') }}" class="btn btn-success w-100">
-                                <i class="fas fa-file-excel"></i> Excel Format
-                            </button>
-                        </div>
-                    </form>
+
+                <div class="form-group mb-0">
+                    <label class="form-label">Report Type</label>
+                    <div class="report-type-grid">
+
+                        <input type="radio" name="type" id="type_sales"
+                               value="sales" class="report-type-option" checked>
+                        <label for="type_sales" class="report-type-label">
+                            <i class="fas fa-chart-line"></i> Sales Summary
+                        </label>
+
+                        <input type="radio" name="type" id="type_products"
+                               value="products" class="report-type-option">
+                        <label for="type_products" class="report-type-label">
+                            <i class="fas fa-boxes-stacked"></i> Product Performance
+                        </label>
+
+                        <input type="radio" name="type" id="type_categories"
+                               value="categories" class="report-type-option">
+                        <label for="type_categories" class="report-type-label">
+                            <i class="fas fa-tag"></i> Category Performance
+                        </label>
+
+                        <input type="radio" name="type" id="type_users"
+                               value="users" class="report-type-option">
+                        <label for="type_users" class="report-type-label">
+                            <i class="fas fa-users"></i> User Performance
+                        </label>
+
+                    </div>
                 </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top:auto;">
+                    <i class="fas fa-chart-line"></i> Generate Report
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Export Data ──────────────────────────────── -->
+    <div class="report-card">
+        <div class="report-card-header">
+            <div class="report-card-icon green">
+                <i class="fas fa-download"></i>
             </div>
+            <span class="report-card-title">Export Data</span>
         </div>
-        
-        <!-- Daily Closing Section -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-warning text-dark">
-                    <h5 class="mb-0"><i class="fas fa-sun"></i> Daily Closing Report</h5>
+        <div class="report-card-body">
+            <form method="GET" action="{{ url_for('reports.export_csv') }}"
+                  style="display:flex; flex-direction:column; gap:14px; flex:1;">
+
+                <div class="date-range-row">
+                    <div class="form-group mb-0">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" name="start_date" id="export_start" class="form-control">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">End Date</label>
+                        <input type="date" name="end_date" id="export_end" class="form-control">
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="GET" action="{{ url_for('reports.daily_closing') }}" class="row g-3">
-                        <div class="col-md-8">
-                            <label class="form-label">Select Date</label>
-                            <input type="date" name="date" class="form-control" id="closing_date">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">&nbsp;</label>
-                            <button type="submit" class="btn btn-warning w-100">
-                                <i class="fas fa-eye"></i> View
-                            </button>
-                        </div>
-                    </form>
-                    <hr>
-                    <div class="alert alert-info small">
-                        <i class="fas fa-info-circle"></i> Daily closing shows total sales, profit, payment breakdown, and best selling product.
+
+                <div class="form-group mb-0">
+                    <label class="form-label">Format</label>
+                    <div class="export-btn-row">
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-file-csv"></i> CSV
+                        </button>
+                        <button type="submit"
+                                formaction="{{ url_for('reports.export_excel') }}"
+                                class="btn btn-success">
+                            <i class="fas fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="info-note" style="margin-top:auto;">
+                    <i class="fas fa-circle-info"></i>
+                    <span>
+                        Exports include all sales transactions within the selected date range,
+                        including items, amounts, and payment methods.
+                    </span>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Daily Closing ────────────────────────────── -->
+    <div class="report-card">
+        <div class="report-card-header">
+            <div class="report-card-icon orange">
+                <i class="fas fa-sun"></i>
+            </div>
+            <span class="report-card-title">Daily Closing Report</span>
+        </div>
+        <div class="report-card-body">
+            <form method="GET" action="{{ url_for('reports.daily_closing') }}"
+                  style="display:flex; flex-direction:column; gap:14px; flex:1;">
+
+                <div class="closing-row">
+                    <div class="form-group mb-0">
+                        <label class="form-label">Select Date</label>
+                        <input type="date" name="date" id="closing_date" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-warning"
+                            style="white-space:nowrap; color:#fff;">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                </div>
+
+                <div class="info-note" style="margin-top:auto;">
+                    <i class="fas fa-circle-info"></i>
+                    <span>
+                        Shows total sales, gross profit, payment method breakdown,
+                        and best-selling product for the selected day.
+                    </span>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Report Guide ──────────────────────────────── -->
+    <div class="report-card">
+        <div class="report-card-header">
+            <div class="report-card-icon teal">
+                <i class="fas fa-circle-question"></i>
+            </div>
+            <span class="report-card-title">Report Guide</span>
+        </div>
+        <div class="report-card-body">
+            <div class="guide-list">
+                <div class="guide-item">
+                    <div class="guide-dot"><i class="fas fa-check"></i></div>
+                    <div class="guide-item-text">
+                        <strong>Sales Summary</strong>
+                        <span>View all transactions within a date range</span>
+                    </div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-dot"><i class="fas fa-check"></i></div>
+                    <div class="guide-item-text">
+                        <strong>Product Performance</strong>
+                        <span>Identify which products sell best</span>
+                    </div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-dot"><i class="fas fa-check"></i></div>
+                    <div class="guide-item-text">
+                        <strong>Category Performance</strong>
+                        <span>Analyse sales broken down by category</span>
+                    </div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-dot"><i class="fas fa-check"></i></div>
+                    <div class="guide-item-text">
+                        <strong>User Performance</strong>
+                        <span>Track individual staff sales activity</span>
+                    </div>
+                </div>
+                <div class="guide-item">
+                    <div class="guide-dot"><i class="fas fa-check"></i></div>
+                    <div class="guide-item-text">
+                        <strong>Export</strong>
+                        <span>Download data as CSV or Excel for further analysis</span>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- Quick Help Section -->
-        <div class="col-md-6 mb-4">
-            <div class="card h-100">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-question-circle"></i> Report Guide</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li><i class="fas fa-check-circle text-success"></i> <strong>Sales Summary</strong> - View all transactions in date range</li>
-                        <li><i class="fas fa-check-circle text-success"></i> <strong>Product Performance</strong> - See which products sell best</li>
-                        <li><i class="fas fa-check-circle text-success"></i> <strong>Category Performance</strong> - Analyze sales by category</li>
-                        <li><i class="fas fa-check-circle text-success"></i> <strong>User Performance</strong> - Track staff sales performance</li>
-                        <li><i class="fas fa-check-circle text-success"></i> <strong>Export</strong> - Download data as CSV or Excel</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
     </div>
+
 </div>
 
 <script>
-// Set default dates
-const today = new Date();
-const thirtyDaysAgo = new Date();
-thirtyDaysAgo.setDate(today.getDate() - 30);
+(function () {
+    function formatDate(d) {
+        return d.toISOString().split('T')[0];
+    }
+    const today = new Date();
+    const thirtyAgo = new Date();
+    thirtyAgo.setDate(today.getDate() - 30);
 
-// Format dates as YYYY-MM-DD
-function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-// Set default values for all date inputs
-document.getElementById('start_date').value = formatDate(thirtyDaysAgo);
-document.getElementById('end_date').value = formatDate(today);
-document.getElementById('export_start').value = formatDate(thirtyDaysAgo);
-document.getElementById('export_end').value = formatDate(today);
-document.getElementById('closing_date').value = formatDate(today);
+    document.getElementById('start_date').value   = formatDate(thirtyAgo);
+    document.getElementById('end_date').value     = formatDate(today);
+    document.getElementById('export_start').value = formatDate(thirtyAgo);
+    document.getElementById('export_end').value   = formatDate(today);
+    document.getElementById('closing_date').value = formatDate(today);
+})();
 </script>
+
 {% endblock %}

@@ -83,7 +83,7 @@ def debtors_list():
                          overdue_count=overdue_count,
                          status_filter=status_filter,
                          search=search,
-                         today=date.today())  # Added today
+                         today=date.today())
 
 @debtors_bp.route('/<int:debtor_id>')
 @login_required
@@ -107,7 +107,8 @@ def debtor_profile(debtor_id):
                          payments=payments,
                          sale=sale,
                          sale_items=sale_items,
-                         today=date.today())  # Added today
+                         today=date.today(),
+                         now=datetime.now())
 
 @debtors_bp.route('/add-payment/<int:debtor_id>', methods=['POST'])
 @login_required
@@ -219,6 +220,7 @@ def statement(debtor_id):
                          payments=payments,
                          sale=sale,
                          sale_items=sale_items,
+                         today=date.today(),
                          now=datetime.now())
 
 @debtors_bp.route('/api/summary')
