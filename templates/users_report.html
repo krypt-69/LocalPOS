@@ -1,75 +1,447 @@
 {% extends "base.html" %}
 
-{% block title %}Users Performance Report{% endblock %}
+{% block title %}User Performance Report{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Summary Stats ───────────────────────────────────── */
+.user-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+/* ── User Cell ───────────────────────────────────────── */
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.user-avatar-sm {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.user-avatar-sm.rank1 {
+    background: #fef9c3;
+    color: #854d0e;
+}
+.user-avatar-sm.rank2 {
+    background: #f1f5f9;
+    color: #475569;
+}
+.user-avatar-sm.rank3 {
+    background: #fff7ed;
+    color: #9a3412;
+}
+.user-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.user-fullname {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+/* ── Rank Badge ──────────────────────────────────────── */
+.rank-badge {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+.rank-badge.gold   { background: #fef9c3; border-color: #eab308; color: #854d0e; }
+.rank-badge.silver { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+.rank-badge.bronze { background: #fff7ed; border-color: #f97316; color: #9a3412; }
+
+/* ── Contribution Bar ────────────────────────────────── */
+.contrib-cell { min-width: 160px; }
+.contrib-wrap {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.contrib-track {
+    flex: 1;
+    height: 7px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.contrib-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--accent);
+    transition: width 0.4s ease;
+}
+.contrib-pct {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* ── Sales Count Pill ────────────────────────────────── */
+.sales-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+}
+
+/* ── Revenue Cell ────────────────────────────────────── */
+.revenue-cell {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--success);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+.avg-cell {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--text-secondary);
+}
+
+/* ── Top Performer Card ──────────────────────────────── */
+.top-performer {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 18px;
+}
+.top-performer-icon {
+    width: 46px; height: 46px;
+    border-radius: var(--radius-md);
+    background: #fef9c3;
+    color: #854d0e;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.top-performer-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+}
+.top-performer-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.top-performer-meta {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ── Totals Row ──────────────────────────────────────── */
+.totals-row td {
+    background: var(--bg-surface-2);
+    border-top: 2px solid var(--border) !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Empty ───────────────────────────────────────────── */
+.empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+}
+.empty-state i { font-size: 28px; opacity: 0.3; }
+.empty-state-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* ── Print ───────────────────────────────────────────── */
+@media print {
+    .report-actions, .topbar { display: none !important; }
+    body, .page-wrapper { background: #fff !important; padding: 0 !important; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 1000px) { .user-summary { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px)  {
+    .user-summary { grid-template-columns: 1fr 1fr; }
+    .col-hide-sm  { display: none; }
+    .contrib-cell { min-width: 100px; }
+}
+@media (max-width: 420px)  { .user-summary { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4">
-        <i class="fas fa-users"></i> Users Performance Report
-        <small class="text-muted">{{ start_date }} to {{ end_date }}</small>
-    </h1>
-    
-    <div class="card">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0">Staff Performance</h5>
-        </div>
-        <div class="card-body">
-            {% if users %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Username</th>
-                            <th>Full Name</th>
-                            <th>Sales Count</th>
-                            <th>Total Sales</th>
-                            <th>Average Sale</th>
-                            <th>Contribution</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% set grand_total = users|sum(attribute='total_sales') %}
-                        {% for user in users %}
-                        {% set percentage = (user.total_sales / grand_total * 100) if grand_total > 0 else 0 %}
-                        <tr>
-                            <td><strong>{{ user.username }}</strong></td>
-                            <td>{{ user.full_name }}</td>
-                            <td>{{ user.sales_count }}</td>
-                            <td class="text-success">KSh {{ "%.2f"|format(user.total_sales) }}</td>
-                            <td>KSh {{ "%.2f"|format(user.avg_sale or 0) }}</td>
-                            <td>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" style="width: {{ percentage }}%">
-                                        {{ "%.1f"|format(percentage) }}%
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot class="table-info">
-                        <tr>
-                            <td colspan="2"><strong>Grand Total</strong></td>
-                            <td><strong>{{ users|sum(attribute='sales_count') }}</strong></td>
-                            <td><strong>KSh {{ "%.2f"|format(grand_total) }}</strong></td>
-                            <td colspan="2"></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            {% else %}
-            <div class="alert alert-info">No sales in this period</div>
-            {% endif %}
-        </div>
+
+{% set grand_total   = users|sum(attribute='total_sales')  if users else 0 %}
+{% set grand_count   = users|sum(attribute='sales_count')  if users else 0 %}
+{% set total_users   = users|length if users else 0 %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">User Performance</h1>
+        <p class="page-subtitle">
+            <i class="fas fa-calendar-range" style="margin-right:5px;"></i>
+            {{ start_date }} &mdash; {{ end_date }}
+        </p>
     </div>
-    
-    <div class="mt-3">
-        <button class="btn btn-primary" onclick="window.print()">
-            <i class="fas fa-print"></i> Print Report
+    <div class="report-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
         </button>
         <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Reports
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 </div>
+
+<!-- ── Summary Stats ───────────────────────────────────── -->
+<div class="user-summary">
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Active Staff</div>
+            <div class="stat-value" style="font-size:18px;">{{ total_users }}</div>
+            <div class="stat-sub">With sales activity</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon teal">
+            <i class="fas fa-receipt"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Transactions</div>
+            <div class="stat-value" style="font-size:18px;">{{ grand_count }}</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value" style="font-size:18px;">
+                KSh {{ "%.2f"|format(grand_total) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Top Performer</div>
+            <div class="stat-value"
+                 style="font-size:14px; white-space:nowrap;
+                        overflow:hidden; text-overflow:ellipsis;">
+                {% if users %}{{ users[0].username }}{% else %}—{% endif %}
+            </div>
+            {% if users %}
+            <div class="stat-sub">
+                KSh {{ "%.2f"|format(users[0].total_sales) }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Top Performer Highlight ─────────────────────────── -->
+{% if users %}
+<div class="top-performer">
+    <div class="top-performer-icon">
+        <i class="fas fa-trophy"></i>
+    </div>
+    <div>
+        <div class="top-performer-label">Top Performer this period</div>
+        <div class="top-performer-name">
+            {{ users[0].username }}
+            {% if users[0].full_name %}
+            <span style="font-weight:400; color:var(--text-secondary);
+                         font-size:14px;"> — {{ users[0].full_name }}</span>
+            {% endif %}
+        </div>
+        <div class="top-performer-meta">
+            {{ users[0].sales_count }} transaction{{ 's' if users[0].sales_count != 1 else '' }}
+            &nbsp;·&nbsp;
+            KSh {{ "%.2f"|format(users[0].total_sales) }} revenue
+            &nbsp;·&nbsp;
+            {% set top_pct = (users[0].total_sales / grand_total * 100) if grand_total > 0 else 0 %}
+            {{ "%.1f"|format(top_pct) }}% of total sales
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ── Staff Table ─────────────────────────────────────── -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title">Staff Breakdown</span>
+        {% if users %}
+        <span style="font-size:12px; color:var(--text-muted);">
+            {{ total_users }} staff member{{ 's' if total_users != 1 else '' }}
+        </span>
+        {% endif %}
+    </div>
+
+    {% if users %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:32px;">#</th>
+                    <th>Staff Member</th>
+                    <th style="text-align:center;">Sales</th>
+                    <th style="text-align:right;">Revenue</th>
+                    <th class="col-hide-sm" style="text-align:right;">Avg Sale</th>
+                    <th class="contrib-cell">Contribution</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                {% set percentage = (user.total_sales / grand_total * 100) if grand_total > 0 else 0 %}
+                <tr>
+
+                    <!-- Rank -->
+                    <td>
+                        <div class="rank-badge
+                            {{ 'gold'   if loop.index == 1 else
+                               'silver' if loop.index == 2 else
+                               'bronze' if loop.index == 3 else '' }}">
+                            {{ loop.index }}
+                        </div>
+                    </td>
+
+                    <!-- User -->
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar-sm
+                                {{ 'rank1' if loop.index == 1 else
+                                   'rank2' if loop.index == 2 else
+                                   'rank3' if loop.index == 3 else '' }}">
+                                {{ user.username[0]|upper }}
+                            </div>
+                            <div>
+                                <div class="user-name">{{ user.username }}</div>
+                                {% if user.full_name %}
+                                <div class="user-fullname">{{ user.full_name }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Sales Count -->
+                    <td style="text-align:center;">
+                        <span class="sales-count">
+                            {{ user.sales_count }}
+                        </span>
+                    </td>
+
+                    <!-- Revenue -->
+                    <td class="revenue-cell">
+                        KSh {{ "%.2f"|format(user.total_sales) }}
+                    </td>
+
+                    <!-- Avg Sale -->
+                    <td class="avg-cell col-hide-sm">
+                        KSh {{ "%.2f"|format(user.avg_sale or 0) }}
+                    </td>
+
+                    <!-- Contribution Bar -->
+                    <td class="contrib-cell">
+                        <div class="contrib-wrap">
+                            <div class="contrib-track">
+                                <div class="contrib-fill"
+                                     style="width:{{ "%.1f"|format(percentage) }}%;">
+                                </div>
+                            </div>
+                            <span class="contrib-pct">
+                                {{ "%.1f"|format(percentage) }}%
+                            </span>
+                        </div>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totals-row">
+                    <td colspan="2">Grand Total</td>
+                    <td style="text-align:center;">{{ grand_count }}</td>
+                    <td style="text-align:right; color:var(--success);">
+                        KSh {{ "%.2f"|format(grand_total) }}
+                    </td>
+                    <td class="col-hide-sm"></td>
+                    <td>
+                        <div class="contrib-wrap">
+                            <div class="contrib-track">
+                                <div class="contrib-fill"
+                                     style="width:100%; background:var(--accent);">
+                                </div>
+                            </div>
+                            <span class="contrib-pct">100%</span>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-users"></i>
+        <div class="empty-state-title">No staff sales in this period</div>
+        <span style="font-size:13px;">
+            Try adjusting the date range to see performance data.
+        </span>
+    </div>
+    {% endif %}
+
+</div>
+
 {% endblock %}

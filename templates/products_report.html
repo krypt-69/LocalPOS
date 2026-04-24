@@ -1,71 +1,403 @@
 {% extends "base.html" %}
 
-{% block title %}Products Performance Report{% endblock %}
+{% block title %}Product Performance Report{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Summary Stats ───────────────────────────────────── */
+.product-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+/* ── Rank Badge ──────────────────────────────────────── */
+.rank-badge {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+.rank-badge.gold   {
+    background: #fef9c3;
+    border-color: #eab308;
+    color: #854d0e;
+}
+.rank-badge.silver {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #475569;
+}
+.rank-badge.bronze {
+    background: #fff7ed;
+    border-color: #f97316;
+    color: #9a3412;
+}
+
+/* ── Product Name Cell ───────────────────────────────── */
+.product-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.product-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+.product-category {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ── Stock Indicator ─────────────────────────────────── */
+.stock-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+.stock-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.stock-dot.ok     { background: var(--success); }
+.stock-dot.low    { background: var(--warning); }
+.stock-dot.out    { background: var(--danger); }
+
+/* ── Number Cells ────────────────────────────────────── */
+.num-cell {
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--text-primary);
+}
+.num-cell.profit  { color: var(--success); font-weight: 600; }
+.num-cell.revenue { font-weight: 600; }
+
+/* ── Units sold bar ──────────────────────────────────── */
+.units-cell {
+    min-width: 130px;
+}
+.units-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.units-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.units-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+.units-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: right;
+}
+
+/* ── Totals Row ──────────────────────────────────────── */
+.totals-row td {
+    background: var(--bg-surface-2);
+    border-top: 2px solid var(--border) !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Empty ───────────────────────────────────────────── */
+.empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+}
+.empty-state i { font-size: 28px; opacity: 0.3; }
+.empty-state-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* ── Print ───────────────────────────────────────────── */
+@media print {
+    .report-actions, .topbar { display: none !important; }
+    body, .page-wrapper {
+        background: #fff !important;
+        padding: 0 !important;
+    }
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 1000px) {
+    .product-summary { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 680px) {
+    .product-summary { grid-template-columns: 1fr 1fr; }
+    .col-hide-sm { display: none; }
+    .units-cell  { min-width: 80px; }
+}
+@media (max-width: 420px) {
+    .product-summary { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4">
-        <i class="fas fa-box"></i> Products Performance Report
-        <small class="text-muted">{{ start_date }} to {{ end_date }}</small>
-    </h1>
-    
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Product Performance</h5>
-        </div>
-        <div class="card-body">
-            {% if products %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Product</th>
-                            <th>Category</th>
-                            <th>Units Sold</th>
-                            <th>Revenue</th>
-                            <th>Current Stock</th>
-                            <th>Profit/Unit</th>
-                            <th>Total Profit</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for product in products %}
-                        {% set profit_per_unit = product.selling_price - product.buying_price %}
-                        {% set total_profit = product.total_sold * profit_per_unit if product.total_sold else 0 %}
-                        <tr>
-                            <td><strong>{{ product.name }}</strong></td>
-                            <td>{{ product.category }}</td>
-                            <td>{{ product.total_sold or 0 }} units</td>
-                            <td>KSh {{ "%.2f"|format(product.total_revenue or 0) }}</td>
-                            <td>{{ product.current_stock }} units</td>
-                            <td class="text-success">KSh {{ "%.2f"|format(profit_per_unit) }}</td>
-                            <td class="text-success">KSh {{ "%.2f"|format(total_profit) }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot class="table-info">
-                        <tr>
-                            <td colspan="2"><strong>Totals</strong></td>
-                            <td><strong>{{ products|sum(attribute='total_sold') or 0 }}</strong></td>
-                            <td><strong>KSh {{ "%.2f"|format(products|sum(attribute='total_revenue') or 0) }}</strong></td>
-                            <td colspan="3"></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            {% else %}
-            <div class="alert alert-info">No products sold in this period</div>
-            {% endif %}
-        </div>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Product Performance</h1>
+        <p class="page-subtitle">
+            <i class="fas fa-calendar-range" style="margin-right:5px;"></i>
+            {{ start_date }} &mdash; {{ end_date }}
+        </p>
     </div>
-    
-    <div class="mt-3">
-        <button class="btn btn-primary" onclick="window.print()">
-            <i class="fas fa-print"></i> Print Report
+    <div class="report-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
         </button>
         <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Reports
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 </div>
+
+<!-- ── Summary Stats ───────────────────────────────────── -->
+{% set total_units   = products|sum(attribute='total_sold')   if products else 0 %}
+{% set total_revenue = products|sum(attribute='total_revenue') if products else 0 %}
+{% set total_products = products|length if products else 0 %}
+
+<div class="product-summary">
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fas fa-boxes-stacked"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Products</div>
+            <div class="stat-value" style="font-size:18px;">
+                {{ total_products }}
+            </div>
+            <div class="stat-sub">With sales activity</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon teal">
+            <i class="fas fa-arrow-up-from-line"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Units Sold</div>
+            <div class="stat-value" style="font-size:18px;">
+                {{ total_units or 0 }}
+            </div>
+            <div class="stat-sub">Total across all products</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value" style="font-size:18px;">
+                KSh {{ "%.2f"|format(total_revenue or 0) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Top Product</div>
+            <div class="stat-value"
+                 style="font-size:14px; white-space:nowrap;
+                        overflow:hidden; text-overflow:ellipsis;">
+                {% if products %}
+                    {{ products[0].name }}
+                {% else %}
+                    —
+                {% endif %}
+            </div>
+            {% if products %}
+            <div class="stat-sub">
+                {{ products[0].total_sold or 0 }} units sold
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Product Table ───────────────────────────────────── -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title">Product Breakdown</span>
+        {% if products %}
+        <span style="font-size:12px; color:var(--text-muted);">
+            {{ total_products }} product{{ 's' if total_products != 1 else '' }}
+        </span>
+        {% endif %}
+    </div>
+
+    {% if products %}
+
+    {% set max_sold = products|map(attribute='total_sold')|max if products else 1 %}
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:32px;">#</th>
+                    <th>Product</th>
+                    <th class="col-hide-sm">Category</th>
+                    <th>Units Sold</th>
+                    <th style="text-align:right;">Revenue</th>
+                    <th class="col-hide-sm" style="text-align:right;">Stock</th>
+                    <th class="col-hide-sm" style="text-align:right;">Profit / Unit</th>
+                    <th style="text-align:right;">Total Profit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                {% set profit_per_unit = product.selling_price - product.buying_price %}
+                {% set total_profit    = product.total_sold * profit_per_unit if product.total_sold else 0 %}
+                {% set units           = product.total_sold or 0 %}
+                {% set bar_pct         = (units / max_sold * 100) if max_sold > 0 else 0 %}
+                {% set stock           = product.current_stock %}
+                <tr>
+
+                    <!-- Rank -->
+                    <td>
+                        <div class="rank-badge
+                            {{ 'gold'   if loop.index == 1 else
+                               'silver' if loop.index == 2 else
+                               'bronze' if loop.index == 3 else '' }}">
+                            {{ loop.index }}
+                        </div>
+                    </td>
+
+                    <!-- Product -->
+                    <td>
+                        <div class="product-name-cell">
+                            <div>
+                                <div class="product-name">{{ product.name }}</div>
+                                <div class="product-category col-hide-sm-inline">
+                                    {{ product.category }}
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Category (own column, hidden on mobile) -->
+                    <td class="col-hide-sm"
+                        style="font-size:12.5px; color:var(--text-muted);">
+                        {{ product.category }}
+                    </td>
+
+                    <!-- Units Sold with bar -->
+                    <td class="units-cell">
+                        <div class="units-wrap">
+                            <div class="units-bar-track">
+                                <div class="units-bar-fill"
+                                     style="width:{{ "%.1f"|format(bar_pct) }}%;"></div>
+                            </div>
+                            <span class="units-count">{{ units }}</span>
+                        </div>
+                    </td>
+
+                    <!-- Revenue -->
+                    <td class="num-cell revenue">
+                        KSh {{ "%.2f"|format(product.total_revenue or 0) }}
+                    </td>
+
+                    <!-- Current Stock -->
+                    <td class="col-hide-sm">
+                        <div class="stock-cell" style="justify-content:flex-end;">
+                            <span class="stock-dot
+                                {{ 'out' if stock == 0 else
+                                   'low' if stock <= 5 else 'ok' }}">
+                            </span>
+                            {{ stock }}
+                        </div>
+                    </td>
+
+                    <!-- Profit per unit -->
+                    <td class="num-cell profit col-hide-sm">
+                        KSh {{ "%.2f"|format(profit_per_unit) }}
+                    </td>
+
+                    <!-- Total Profit -->
+                    <td class="num-cell profit">
+                        KSh {{ "%.2f"|format(total_profit) }}
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totals-row">
+                    <td colspan="2">Totals</td>
+                    <td class="col-hide-sm"></td>
+                    <td style="font-variant-numeric:tabular-nums;">
+                        {{ total_units or 0 }} units
+                    </td>
+                    <td style="text-align:right; font-variant-numeric:tabular-nums;">
+                        KSh {{ "%.2f"|format(total_revenue or 0) }}
+                    </td>
+                    <td class="col-hide-sm"></td>
+                    <td class="col-hide-sm"></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <div class="empty-state-title">No products sold in this period</div>
+        <span style="font-size:13px;">
+            Try adjusting the date range to see product performance data.
+        </span>
+    </div>
+    {% endif %}
+
+</div>
+
 {% endblock %}

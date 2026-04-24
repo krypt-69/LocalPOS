@@ -1,84 +1,326 @@
 {% extends "base.html" %}
 
-{% block title %}Categories Performance Report{% endblock %}
+{% block title %}Category Performance Report{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Header Summary ──────────────────────────────────── */
+.cat-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+/* ── Category Table ──────────────────────────────────── */
+.cat-name {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.cat-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.cat-revenue {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--success);
+    font-variant-numeric: tabular-nums;
+}
+.cat-count {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Progress Bar ────────────────────────────────────── */
+.pct-cell {
+    min-width: 160px;
+}
+.pct-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+.pct-bar-track {
+    flex: 1;
+    height: 7px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+.pct-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+.pct-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    width: 40px;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* ── Totals Row ──────────────────────────────────────── */
+.totals-row td {
+    background: var(--bg-surface-2);
+    border-top: 2px solid var(--border) !important;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Empty ───────────────────────────────────────────── */
+.empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+}
+.empty-state i {
+    font-size: 28px;
+    opacity: 0.3;
+}
+.empty-state-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* ── Print ───────────────────────────────────────────── */
+@media print {
+    .report-actions, .topbar { display: none !important; }
+    body, .page-wrapper {
+        background: #fff !important;
+        padding: 0 !important;
+    }
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 860px) {
+    .cat-summary { grid-template-columns: 1fr 1fr; }
+    .col-hide-sm { display: none; }
+}
+@media (max-width: 480px) {
+    .cat-summary { grid-template-columns: 1fr; }
+    .pct-cell    { min-width: 100px; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4">
-        <i class="fas fa-tags"></i> Categories Performance Report
-        <small class="text-muted">{{ start_date }} to {{ end_date }}</small>
-    </h1>
-    
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h5>Total Revenue</h5>
-                    <h2>KSh {{ "%.2f"|format(total_revenue) }}</h2>
-                </div>
-            </div>
-        </div>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Category Performance</h1>
+        <p class="page-subtitle">
+            <i class="fas fa-calendar-range" style="margin-right:5px;"></i>
+            {{ start_date }} &mdash; {{ end_date }}
+        </p>
     </div>
-    
-    <div class="card">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">Category Breakdown</h5>
-        </div>
-        <div class="card-body">
-            {% if categories %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Category</th>
-                            <th>Transactions</th>
-                            <th>Items Sold</th>
-                            <th>Revenue</th>
-                            <th>% of Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cat in categories %}
-                        {% set percentage = (cat.revenue / total_revenue * 100) if total_revenue > 0 else 0 %}
-                        <tr>
-                            <td><strong>{{ cat.name }}</strong></td>
-                            <td>{{ cat.transaction_count }}</td>
-                            <td>{{ cat.items_sold }}</td>
-                            <td class="text-success">KSh {{ "%.2f"|format(cat.revenue) }}</td>
-                            <td>
-                                <div class="progress">
-                                    <div class="progress-bar" style="width: {{ percentage }}%">
-                                        {{ "%.1f"|format(percentage) }}%
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot class="table-info">
-                        <tr>
-                            <td><strong>Totals</strong></td>
-                            <td><strong>{{ categories|sum(attribute='transaction_count') }}</strong></td>
-                            <td><strong>{{ categories|sum(attribute='items_sold') }}</strong></td>
-                            <td><strong>KSh {{ "%.2f"|format(total_revenue) }}</strong></td>
-                            <td><strong>100%</strong></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            {% else %}
-            <div class="alert alert-info">No sales in this period</div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="mt-3">
-        <button class="btn btn-primary" onclick="window.print()">
-            <i class="fas fa-print"></i> Print Report
+    <div class="report-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
         </button>
         <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Reports
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 </div>
+
+<!-- ── Summary Stats ───────────────────────────────────── -->
+<div class="cat-summary">
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value" style="font-size:18px;">
+                KSh {{ "%.2f"|format(total_revenue) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon teal">
+            <i class="fas fa-tag"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Categories</div>
+            <div class="stat-value" style="font-size:18px;">
+                {{ categories|length if categories else 0 }}
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fas fa-boxes-stacked"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Items Sold</div>
+            <div class="stat-value" style="font-size:18px;">
+                {{ categories|sum(attribute='items_sold') if categories else 0 }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Category Breakdown Table ────────────────────────── -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title">Category Breakdown</span>
+        {% if categories %}
+        <span style="font-size:12px; color:var(--text-muted);">
+            {{ categories|length }} categor{{ 'ies' if categories|length != 1 else 'y' }}
+        </span>
+        {% endif %}
+    </div>
+
+    {% if categories %}
+
+    <!-- Colour palette assigned per row via JS -->
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th class="col-hide-sm">Transactions</th>
+                    <th class="col-hide-sm">Items Sold</th>
+                    <th style="text-align:right;">Revenue</th>
+                    <th class="pct-cell">Share</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                {% set percentage = (cat.revenue / total_revenue * 100) if total_revenue > 0 else 0 %}
+                <tr>
+
+                    <td>
+                        <div class="cat-name">
+                            <span class="cat-dot" data-index="{{ loop.index0 }}"></span>
+                            {{ cat.name }}
+                        </div>
+                    </td>
+
+                    <td class="cat-count col-hide-sm">
+                        {{ cat.transaction_count }}
+                    </td>
+
+                    <td class="cat-count col-hide-sm">
+                        {{ cat.items_sold }}
+                    </td>
+
+                    <td class="cat-revenue" style="text-align:right;">
+                        KSh {{ "%.2f"|format(cat.revenue) }}
+                    </td>
+
+                    <td class="pct-cell">
+                        <div class="pct-bar-wrap">
+                            <div class="pct-bar-track">
+                                <div class="pct-bar-fill"
+                                     data-index="{{ loop.index0 }}"
+                                     style="width: {{ "%.1f"|format(percentage) }}%;">
+                                </div>
+                            </div>
+                            <span class="pct-label">
+                                {{ "%.1f"|format(percentage) }}%
+                            </span>
+                        </div>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="totals-row">
+                    <td>Totals</td>
+                    <td class="col-hide-sm">
+                        {{ categories|sum(attribute='transaction_count') }}
+                    </td>
+                    <td class="col-hide-sm">
+                        {{ categories|sum(attribute='items_sold') }}
+                    </td>
+                    <td style="text-align:right; color:var(--success);">
+                        KSh {{ "%.2f"|format(total_revenue) }}
+                    </td>
+                    <td>
+                        <div class="pct-bar-wrap">
+                            <div class="pct-bar-track">
+                                <div class="pct-bar-fill"
+                                     style="width:100%;
+                                            background:var(--accent);">
+                                </div>
+                            </div>
+                            <span class="pct-label">100%</span>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-tag"></i>
+        <div class="empty-state-title">No category sales in this period</div>
+        <span style="font-size:13px;">
+            Try a different date range to see performance data.
+        </span>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+(function () {
+    /* Colour palette for category dots and bars */
+    const palette = [
+        'var(--accent)',
+        'var(--success)',
+        'var(--warning)',
+        'var(--info)',
+        '#a855f7',
+        '#ec4899',
+        '#f97316',
+        '#14b8a6',
+        '#6366f1',
+        '#84cc16'
+    ];
+
+    /* Apply colours to dots */
+    document.querySelectorAll('.cat-dot[data-index]').forEach(el => {
+        const i = parseInt(el.dataset.index);
+        el.style.background = palette[i % palette.length];
+    });
+
+    /* Apply colours to bar fills */
+    document.querySelectorAll('.pct-bar-fill[data-index]').forEach(el => {
+        const i = parseInt(el.dataset.index);
+        el.style.background = palette[i % palette.length];
+    });
+})();
+</script>
+
 {% endblock %}

@@ -1,34 +1,248 @@
 {% extends "base.html" %}
 
-{% block title %}Login - LocalPOS{% endblock %}
+{% block title %}Login — LocalPOS{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Login Page ──────────────────────────────────────── */
+.login-wrapper {
+    min-height: calc(100vh - var(--topbar-height));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── Brand Block ─────────────────────────────────────── */
+.login-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+.login-brand-icon {
+    width: 54px; height: 54px;
+    background: var(--accent);
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.28);
+}
+.login-brand-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+}
+.login-brand-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+/* ── Login Card ──────────────────────────────────────── */
+.login-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+.login-card-header {
+    padding: 20px 24px 0;
+}
+.login-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+}
+.login-card-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.login-card-body {
+    padding: 20px 24px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ── Password Toggle ─────────────────────────────────── */
+.password-wrap {
+    position: relative;
+}
+.password-wrap .form-control {
+    padding-right: 40px;
+}
+.password-toggle {
+    position: absolute;
+    right: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+    transition: color var(--transition);
+    line-height: 1;
+}
+.password-toggle:hover { color: var(--text-secondary); }
+
+/* ── Submit Button ───────────────────────────────────── */
+.login-submit {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+/* ── Divider ─────────────────────────────────────────── */
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+/* ── Default Credentials Note ────────────────────────── */
+.login-hint {
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+.login-hint i {
+    font-size: 12px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    color: var(--text-muted);
+}
+.login-hint code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 5px;
+    color: var(--accent);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-4 col-sm-8">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white text-center">
-                <h4><i class="fas fa-store"></i> LocalPOS Login</h4>
+
+<div class="login-wrapper">
+    <div class="login-box">
+
+        <!-- Brand -->
+        <div class="login-brand">
+            <div class="login-brand-icon">
+                <i class="fas fa-store"></i>
             </div>
-            <div class="card-body">
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required autofocus>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                </form>
-                <hr>
-                <div class="text-center text-muted">
-                    <small>Default users: user1 / user2<br>Password: password123</small>
-                </div>
+            <div>
+                <div class="login-brand-name">LocalPOS</div>
+                <div class="login-brand-sub">Stock Management System</div>
             </div>
         </div>
+
+        <!-- Card -->
+        <div class="login-card">
+            <div class="login-card-header">
+                <div class="login-card-title">Sign in to your account</div>
+                <div class="login-card-sub">Enter your credentials to continue</div>
+            </div>
+            <div class="login-card-body">
+
+                <form method="POST"
+                      style="display:flex; flex-direction:column; gap:14px;">
+
+                    <!-- Username -->
+                    <div class="form-group mb-0">
+                        <label class="form-label" for="username">Username</label>
+                        <input type="text" class="form-control" id="username"
+                               name="username" required autofocus
+                               placeholder="Enter your username">
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group mb-0">
+                        <label class="form-label" for="password">Password</label>
+                        <div class="password-wrap">
+                            <input type="password" class="form-control"
+                                   id="password" name="password"
+                                   required placeholder="Enter your password">
+                            <button type="button" class="password-toggle"
+                                    id="togglePassword" aria-label="Toggle password visibility">
+                                <i class="fas fa-eye" id="toggleIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <button type="submit" class="btn btn-primary login-submit">
+                        <i class="fas fa-arrow-right-to-bracket"></i> Sign In
+                    </button>
+
+                </form>
+
+                <!-- Divider -->
+                <div class="login-divider">Default credentials</div>
+
+                <!-- Hint -->
+                <div class="login-hint">
+                    <i class="fas fa-circle-info"></i>
+                    <span>
+                        Users: <code>user1</code> or <code>user2</code><br>
+                        Password: <code>password123</code>
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 </div>
+
+<script>
+(function () {
+    const toggle = document.getElementById('togglePassword');
+    const input  = document.getElementById('password');
+    const icon   = document.getElementById('toggleIcon');
+
+    toggle.addEventListener('click', function () {
+        const isHidden = input.type === 'password';
+        input.type     = isHidden ? 'text' : 'password';
+        icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+    });
+})();
+</script>
+
 {% endblock %}

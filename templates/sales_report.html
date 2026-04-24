@@ -2,134 +2,416 @@
 
 {% block title %}Sales Report{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ── Summary Stats ───────────────────────────────────── */
+.report-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+/* ── Payment Breakdown ───────────────────────────────── */
+.payment-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.payment-tile {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+}
+.payment-tile-icon {
+    width: 42px; height: 42px;
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.payment-tile-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+}
+.payment-tile-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Payment bar visualization ───────────────────────── */
+.payment-bar-wrap {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-sm);
+}
+.payment-bar-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
+.payment-bar-track {
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    display: flex;
+}
+.payment-bar-segment {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+.payment-bar-legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Table ───────────────────────────────────────────── */
+.receipt-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    white-space: nowrap;
+}
+.method-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+.method-cash   { background: var(--success-soft); color: var(--success); }
+.method-mpesa  { background: var(--info-soft);    color: var(--info); }
+.method-credit { background: var(--warning-soft); color: var(--warning); }
+
+.amount-cell {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+.date-cell {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.items-cell {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+/* ── Empty ───────────────────────────────────────────── */
+.empty-state {
+    padding: 48px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+}
+.empty-state i { font-size: 28px; opacity: 0.3; }
+.empty-state-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* ── Print ───────────────────────────────────────────── */
+@media print {
+    .report-actions,
+    .topbar { display: none !important; }
+    body, .page-wrapper {
+        background: #fff !important;
+        padding: 0 !important;
+    }
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 1000px) {
+    .report-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+    .report-stats      { grid-template-columns: 1fr 1fr; }
+    .payment-breakdown { grid-template-columns: 1fr; }
+    .col-hide-sm { display: none; }
+}
+@media (max-width: 420px) {
+    .report-stats { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <h1 class="mb-4">
-        <i class="fas fa-chart-line"></i> Sales Report
-        <small class="text-muted">{{ start_date }} to {{ end_date }}</small>
-    </h1>
-    
-    <!-- Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <h6>Total Sales</h6>
-                    <h3>KSh {{ "%.2f"|format(total_sales) }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h6>Total Profit</h6>
-                    <h3>KSh {{ "%.2f"|format(total_profit) }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <h6>Transactions</h6>
-                    <h3>{{ total_transactions }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-dark">
-                <div class="card-body">
-                    <h6>Average Sale</h6>
-                    <h3>KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }}</h3>
-                </div>
-            </div>
-        </div>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Sales Report</h1>
+        <p class="page-subtitle">
+            <i class="fas fa-calendar-range" style="margin-right:5px;"></i>
+            {{ start_date }} &mdash; {{ end_date }}
+        </p>
     </div>
-    
-    <!-- Payment Breakdown -->
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">Payment Breakdown</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div class="alert alert-success">
-                                <strong>Cash</strong><br>
-                                KSh {{ "%.2f"|format(cash_total) }}
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="alert alert-info">
-                                <strong>M-Pesa</strong><br>
-                                KSh {{ "%.2f"|format(mpesa_total) }}
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="alert alert-warning">
-                                <strong>Credit</strong><br>
-                                KSh {{ "%.2f"|format(credit_total) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Sales Table -->
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Transaction Details</h5>
-        </div>
-        <div class="card-body">
-            {% if sales %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Date & Time</th>
-                            <th>Receipt #</th>
-                            <th>Items</th>
-                            <th>Amount</th>
-                            <th>Payment</th>
-                            <th>Customer</th>
-                            <th>Cashier</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for sale in sales %}
-                        <tr>
-                            <td>{{ sale.sale_date.strftime('%Y-%m-%d %H:%M') if sale.sale_date else 'N/A' }}</td>
-                            <td>{{ sale.receipt_number }}</td>
-                            <td>{{ sale.items|length if sale.items else 0 }} items</td>
-                            <td class="text-end">KSh {{ "%.2f"|format(sale.final_amount) }}</td>
-                            <td>
-                                <span class="badge {% if sale.payment_method == 'cash' %}bg-success{% elif sale.payment_method == 'mpesa' %}bg-info{% else %}bg-warning{% endif %}">
-                                    {{ sale.payment_method|upper }}
-                                </span>
-                            </td>
-                            <td>{{ sale.customer_name or 'Walk-in' }}</td>
-                            <td>{{ sale.user.username if sale.user else 'Unknown' }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="alert alert-info">No sales found in this period</div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="mt-3">
-        <button class="btn btn-primary" onclick="window.print()">
-            <i class="fas fa-print"></i> Print Report
+    <div class="report-actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print"></i> Print
         </button>
         <a href="{{ url_for('reports.reports_page') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Reports
+            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
 </div>
+
+<!-- ── Summary Stats ───────────────────────────────────── -->
+<div class="report-stats">
+
+    <div class="stat-card">
+        <div class="stat-icon blue">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Sales</div>
+            <div class="stat-value" style="font-size:18px;">
+                KSh {{ "%.2f"|format(total_sales) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon green">
+            <i class="fas fa-circle-dollar-to-slot"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Total Profit</div>
+            <div class="stat-value" style="font-size:18px;">
+                KSh {{ "%.2f"|format(total_profit) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon teal">
+            <i class="fas fa-receipt"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Transactions</div>
+            <div class="stat-value" style="font-size:18px;">
+                {{ total_transactions }}
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon orange">
+            <i class="fas fa-calculator"></i>
+        </div>
+        <div class="stat-info">
+            <div class="stat-label">Average Sale</div>
+            <div class="stat-value" style="font-size:18px;">
+                KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Payment Breakdown ───────────────────────────────── -->
+<div class="payment-breakdown">
+
+    <div class="payment-tile">
+        <div class="payment-tile-icon"
+             style="background:var(--success-soft); color:var(--success);">
+            <i class="fas fa-money-bill-wave"></i>
+        </div>
+        <div>
+            <div class="payment-tile-label">Cash</div>
+            <div class="payment-tile-value">
+                KSh {{ "%.2f"|format(cash_total) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="payment-tile">
+        <div class="payment-tile-icon"
+             style="background:var(--info-soft); color:var(--info);">
+            <i class="fas fa-mobile-screen-button"></i>
+        </div>
+        <div>
+            <div class="payment-tile-label">M-Pesa</div>
+            <div class="payment-tile-value">
+                KSh {{ "%.2f"|format(mpesa_total) }}
+            </div>
+        </div>
+    </div>
+
+    <div class="payment-tile">
+        <div class="payment-tile-icon"
+             style="background:var(--warning-soft); color:var(--warning);">
+            <i class="fas fa-handshake"></i>
+        </div>
+        <div>
+            <div class="payment-tile-label">Credit</div>
+            <div class="payment-tile-value">
+                KSh {{ "%.2f"|format(credit_total) }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Payment Mix Bar ─────────────────────────────────── -->
+{% set grand = cash_total + mpesa_total + credit_total %}
+{% if grand > 0 %}
+{% set cash_pct  = (cash_total  / grand * 100)|round(1) %}
+{% set mpesa_pct = (mpesa_total / grand * 100)|round(1) %}
+{% set credit_pct= (credit_total/ grand * 100)|round(1) %}
+<div class="payment-bar-wrap">
+    <div class="payment-bar-label">Payment Mix</div>
+    <div class="payment-bar-track">
+        <div class="payment-bar-segment"
+             style="width:{{ cash_pct }}%; background:var(--success);"></div>
+        <div class="payment-bar-segment"
+             style="width:{{ mpesa_pct }}%; background:var(--info);"></div>
+        <div class="payment-bar-segment"
+             style="width:{{ credit_pct }}%; background:var(--warning);"></div>
+    </div>
+    <div class="payment-bar-legend">
+        <div class="legend-item">
+            <div class="legend-dot" style="background:var(--success);"></div>
+            Cash {{ cash_pct }}%
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background:var(--info);"></div>
+            M-Pesa {{ mpesa_pct }}%
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background:var(--warning);"></div>
+            Credit {{ credit_pct }}%
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ── Transaction Table ───────────────────────────────── -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-header-title">Transaction Details</span>
+        {% if sales %}
+        <span style="font-size:12px; color:var(--text-muted);">
+            {{ sales|length }} record{{ 's' if sales|length != 1 else '' }}
+        </span>
+        {% endif %}
+    </div>
+
+    {% if sales %}
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Receipt</th>
+                    <th class="col-hide-sm">Items</th>
+                    <th style="text-align:right;">Amount</th>
+                    <th>Payment</th>
+                    <th class="col-hide-sm">Customer</th>
+                    <th class="col-hide-sm">Cashier</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td class="date-cell">
+                        {% if sale.sale_date %}
+                            {{ sale.sale_date.strftime('%d %b %Y') }}<br>
+                            <span style="font-size:11.5px; color:var(--text-muted);">
+                                {{ sale.sale_date.strftime('%H:%M') }}
+                            </span>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="receipt-code">{{ sale.receipt_number }}</span>
+                    </td>
+                    <td class="items-cell col-hide-sm">
+                        {{ sale.items|length if sale.items else 0 }} item{{ 's' if (sale.items|length if sale.items else 0) != 1 else '' }}
+                    </td>
+                    <td class="amount-cell">
+                        KSh {{ "%.2f"|format(sale.final_amount) }}
+                    </td>
+                    <td>
+                        <span class="method-badge method-{{ sale.payment_method }}">
+                            {{ sale.payment_method }}
+                        </span>
+                    </td>
+                    <td class="col-hide-sm"
+                        style="font-size:13px; color:var(--text-secondary);">
+                        {{ sale.customer_name or 'Walk-in' }}
+                    </td>
+                    <td class="col-hide-sm"
+                        style="font-size:13px; color:var(--text-muted);">
+                        {{ sale.user.username if sale.user else '—' }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-chart-line"></i>
+        <div class="empty-state-title">No sales found in this period</div>
+        <span style="font-size:13px;">
+            Try adjusting the date range or report type.
+        </span>
+    </div>
+    {% endif %}
+
+</div>
+
 {% endblock %}

@@ -1,105 +1,469 @@
 {% extends "base.html" %}
 
-{% block title %}{{ product.name }} - Details{% endblock %}
+{% block title %}{{ product.name }} — Product Details{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout ──────────────────────────────────────────── */
+.product-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.product-sidebar {
+    position: sticky;
+    top: calc(var(--topbar-height) + 16px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* ── Product Identity Card ───────────────────────────── */
+.product-identity {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+.product-identity-top {
+    padding: 22px 20px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+}
+.product-avatar {
+    width: 54px; height: 54px;
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+}
+.product-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+.product-category-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+}
+
+/* ── Info List ───────────────────────────────────────── */
+.info-list {
+    display: flex;
+    flex-direction: column;
+}
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label {
+    color: var(--text-muted);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.info-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Stock Status Badge ──────────────────────────────── */
+.stock-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+.stock-ok      { background: var(--success-soft); color: var(--success); }
+.stock-low     { background: var(--warning-soft); color: var(--warning); }
+.stock-critical{ background: var(--danger-soft);  color: var(--danger); }
+
+/* ── Pricing Card ────────────────────────────────────── */
+.pricing-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+.pricing-header {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--border);
+}
+.pricing-item {
+    padding: 14px 12px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+}
+.pricing-item:last-child { border-right: none; }
+.pricing-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+.pricing-value {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+}
+.pricing-value.profit { color: var(--success); }
+
+/* ── Margin bar ──────────────────────────────────────── */
+.margin-wrap {
+    padding: 12px 16px;
+}
+.margin-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+.margin-bar-track {
+    height: 6px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.margin-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--success);
+}
+
+/* ── Main Content ────────────────────────────────────── */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ── History Tables ──────────────────────────────────── */
+.qty-positive {
+    color: var(--success);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.qty-negative {
+    color: var(--danger);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.receipt-code {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    white-space: nowrap;
+}
+.date-cell {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.no-data-row td {
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-style: italic;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 860px) {
+    .product-grid { grid-template-columns: 1fr; }
+    .product-sidebar { position: static; }
+}
+@media (max-width: 480px) {
+    .pricing-grid { grid-template-columns: 1fr; }
+    .pricing-item { border-right: none; border-bottom: 1px solid var(--border); }
+    .pricing-item:last-child { border-bottom: none; }
+    .col-hide-sm { display: none; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">
-        <i class="fas fa-box"></i> {{ product.name }}
-        <a href="{{ url_for('stock_management.stock_list') }}" class="btn btn-secondary float-end">
-            <i class="fas fa-arrow-left"></i> Back to Stock
-        </a>
-    </h1>
-    
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Product Information</h5>
+
+{% set profit_per_unit = product.selling_price - product.buying_price %}
+{% set margin_pct = (profit_per_unit / product.selling_price * 100) if product.selling_price > 0 else 0 %}
+{% set s = product.stock_status.color %}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ product.name }}</h1>
+        <p class="page-subtitle">Product details, pricing and history</p>
+    </div>
+    <a href="{{ url_for('stock_management.stock_list') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Stock
+    </a>
+</div>
+
+<div class="product-grid">
+
+    <!-- ── SIDEBAR ──────────────────────────────────── -->
+    <div class="product-sidebar">
+
+        <!-- Identity -->
+        <div class="product-identity">
+            <div class="product-identity-top">
+                <div class="product-avatar">
+                    <i class="fas fa-box"></i>
                 </div>
-                <div class="card-body">
-                    <p><strong>Category:</strong> {{ product.category.name }}</p>
-                    <p><strong>Current Stock:</strong> 
-                        <span class="badge bg-{{ product.stock_status.color }}">{{ product.current_stock }} units</span>
-                    </p>
-                    <p><strong>Reorder Level:</strong> {{ product.reorder_level }}</p>
-                    <p><strong>Stock Status:</strong> {{ product.stock_status.text }}</p>
-                    <p><strong>Days Remaining:</strong> 
+                <div class="product-title">{{ product.name }}</div>
+                <div class="product-category-tag">
+                    <i class="fas fa-tag" style="font-size:10px;"></i>
+                    {{ product.category.name }}
+                </div>
+            </div>
+
+            <div class="info-list">
+
+                <div class="info-row">
+                    <span class="info-label">Status</span>
+                    <span class="stock-status-badge
+                        {{ 'stock-critical' if s == 'danger' else
+                           'stock-low'      if s == 'warning' else
+                           'stock-ok' }}">
+                        {% if s == 'danger' %}<i class="fas fa-circle-xmark" style="font-size:10px;"></i>
+                        {% elif s == 'warning' %}<i class="fas fa-triangle-exclamation" style="font-size:10px;"></i>
+                        {% else %}<i class="fas fa-circle-check" style="font-size:10px;"></i>{% endif %}
+                        {{ product.stock_status.text }}
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Current Stock</span>
+                    <span class="info-value
+                        {{ 'text-danger'  if s == 'danger'  else
+                           'text-warning' if s == 'warning' else '' }}">
+                        {{ product.current_stock }} units
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Reorder Level</span>
+                    <span class="info-value">{{ product.reorder_level }} units</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">Days Remaining</span>
+                    <span class="info-value">
                         {% if product.days_remaining == 999 %}
-                            No sales data
+                            <span style="color:var(--text-muted); font-weight:400;">
+                                No sales data
+                            </span>
                         {% else %}
-                            {{ product.days_remaining }} days
+                            <span class="{{ 'text-danger' if product.days_remaining < 7 else
+                                           'text-warning' if product.days_remaining < 14 else '' }}">
+                                {{ product.days_remaining }} days
+                            </span>
                         {% endif %}
-                    </p>
-                    <hr>
-                    <p><strong>Buying Price:</strong> KSh {{ "%.2f"|format(product.buying_price) }}</p>
-                    <p><strong>Selling Price:</strong> KSh {{ "%.2f"|format(product.selling_price) }}</p>
-                    <p><strong>Profit per unit:</strong> 
-                        <span class="text-success">KSh {{ "%.2f"|format(product.selling_price - product.buying_price) }}</span>
-                    </p>
+                    </span>
                 </div>
+
             </div>
         </div>
-        
-        <div class="col-md-8">
-            <div class="card mb-3">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Stock History (Last 10)</h5>
+
+        <!-- Pricing -->
+        <div class="pricing-card">
+            <div class="pricing-header">Pricing</div>
+            <div class="pricing-grid">
+                <div class="pricing-item">
+                    <div class="pricing-label">Cost</div>
+                    <div class="pricing-value">
+                        {{ "%.2f"|format(product.buying_price) }}
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr><th>Date</th><th>Quantity</th><th>Buying Price</th><th>Supplier</th><th>User</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for entry in stock_history %}
-                                <tr>
-                                    <td>{{ entry.entry_date.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td class="{% if entry.quantity < 0 %}text-danger{% else %}text-success{% endif %}">
-                                        {{ entry.quantity }}
-                                    </td>
-                                    <td>KSh {{ "%.2f"|format(entry.buying_price) }}</td>
-                                    <td>{{ entry.supplier or '-' }}</td>
-                                    <td>{{ entry.user.username }}</td>
-                                </tr>
-                                {% else %}
-                                <tr><td colspan="5">No stock history</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <div class="pricing-item">
+                    <div class="pricing-label">Selling</div>
+                    <div class="pricing-value">
+                        {{ "%.2f"|format(product.selling_price) }}
+                    </div>
+                </div>
+                <div class="pricing-item">
+                    <div class="pricing-label">Profit</div>
+                    <div class="pricing-value profit">
+                        +{{ "%.2f"|format(profit_per_unit) }}
                     </div>
                 </div>
             </div>
-            
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0">Recent Sales (Last 10)</h5>
+            <div class="margin-wrap">
+                <div class="margin-bar-label">
+                    <span>Margin</span>
+                    <span>{{ "%.1f"|format(margin_pct) }}%</span>
                 </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr><th>Date</th><th>Quantity</th><th>Price</th><th>Total</th><th>Receipt</th></tr>
-                            </thead>
-                            <tbody>
-                                {% for item in recent_sales %}
-                                <tr>
-                                    <td>{{ item.sale.sale_date.strftime('%Y-%m-%d %H:%M') }}</td>
-                                    <td>{{ item.quantity }}</td>
-                                    <td>KSh {{ "%.2f"|format(item.price_at_sale) }}</td>
-                                    <td>KSh {{ "%.2f"|format(item.total) }}</td>
-                                    <td>{{ item.sale.receipt_number }}</td>
-                                </tr>
-                                {% else %}
-                                <tr><td colspan="5">No sales recorded</td></tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                <div class="margin-bar-track">
+                    <div class="margin-bar-fill"
+                         style="width:{{ [margin_pct, 100]|min|round(1) }}%;
+                                background: {{ 'var(--danger)'  if margin_pct < 0  else
+                                               'var(--warning)' if margin_pct < 15 else
+                                               'var(--success)' }};">
                     </div>
                 </div>
             </div>
         </div>
+
+    </div>
+
+    <!-- ── MAIN CONTENT ──────────────────────────────── -->
+    <div class="main-content">
+
+        <!-- Stock History -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Stock History</span>
+                <span style="font-size:12px; color:var(--text-muted);">Last 10 entries</span>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date &amp; Time</th>
+                            <th style="text-align:center;">Quantity</th>
+                            <th class="col-hide-sm" style="text-align:right;">Buying Price</th>
+                            <th class="col-hide-sm">Supplier</th>
+                            <th>Recorded By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in stock_history %}
+                        <tr>
+                            <td class="date-cell">
+                                {{ entry.entry_date.strftime('%d %b %Y') }}<br>
+                                <span style="font-size:11.5px; color:var(--text-muted);">
+                                    {{ entry.entry_date.strftime('%H:%M') }}
+                                </span>
+                            </td>
+                            <td style="text-align:center;">
+                                <span class="{{ 'qty-negative' if entry.quantity < 0 else 'qty-positive' }}">
+                                    {{ '+' if entry.quantity > 0 else '' }}{{ entry.quantity }}
+                                </span>
+                            </td>
+                            <td class="col-hide-sm" style="text-align:right;
+                                font-variant-numeric:tabular-nums; font-size:13px;">
+                                KSh {{ "%.2f"|format(entry.buying_price) }}
+                            </td>
+                            <td class="col-hide-sm"
+                                style="font-size:13px; color:var(--text-secondary);">
+                                {{ entry.supplier or '—' }}
+                            </td>
+                            <td style="font-size:13px; color:var(--text-muted);">
+                                {{ entry.user.username }}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="no-data-row">
+                            <td colspan="5">No stock history recorded yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Sales -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Recent Sales</span>
+                <span style="font-size:12px; color:var(--text-muted);">Last 10 transactions</span>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date &amp; Time</th>
+                            <th style="text-align:center;">Qty</th>
+                            <th class="col-hide-sm" style="text-align:right;">Unit Price</th>
+                            <th style="text-align:right;">Total</th>
+                            <th>Receipt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in recent_sales %}
+                        <tr>
+                            <td class="date-cell">
+                                {{ item.sale.sale_date.strftime('%d %b %Y') }}<br>
+                                <span style="font-size:11.5px; color:var(--text-muted);">
+                                    {{ item.sale.sale_date.strftime('%H:%M') }}
+                                </span>
+                            </td>
+                            <td style="text-align:center; font-weight:600;
+                                       color:var(--text-secondary);">
+                                {{ item.quantity }}
+                            </td>
+                            <td class="col-hide-sm" style="text-align:right;
+                                font-variant-numeric:tabular-nums; font-size:13px;">
+                                KSh {{ "%.2f"|format(item.price_at_sale) }}
+                            </td>
+                            <td style="text-align:right; font-weight:700;
+                                       font-variant-numeric:tabular-nums;">
+                                KSh {{ "%.2f"|format(item.total) }}
+                            </td>
+                            <td>
+                                <span class="receipt-code">
+                                    {{ item.sale.receipt_number }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="no-data-row">
+                            <td colspan="5">No sales recorded for this product yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 </div>
+
 {% endblock %}
