@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Activity Log{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div><h1 class="page-title"><i class="fas fa-history"></i> Activity Log</h1><p class="page-subtitle">Track all user actions</p></div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">User</label>
+                <select name="user_id" class="form-select">
+                    <option value="">All users</option>
+                    {% for u in users %}
+                    <option value="{{ u.id }}" {% if selected_user == u.id %}selected{% endif %}>{{ u.username }} ({{ u.full_name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Action (contains)</label>
+                <input type="text" name="action" class="form-control" value="{{ selected_action }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Days back</label>
+                <select name="days" class="form-select">
+                    <option value="1" {% if days == 1 %}selected{% endif %}>1 day</option>
+                    <option value="7" {% if days == 7 %}selected{% endif %}>7 days</option>
+                    <option value="30" {% if days == 30 %}selected{% endif %}>30 days</option>
+                    <option value="90" {% if days == 90 %}selected{% endif %}>90 days</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary d-block">Filter</button>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <a href="{{ url_for('activity.view_log') }}" class="btn btn-secondary d-block">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr><th>Time</th><th>User</th><th>Action</th><th>Details</th><th>Target</th></tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td style="white-space: nowrap;">{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                    <td><strong>{{ log.username }}</strong> (ID: {{ log.user_id }})</td>
+                    <td><span class="badge bg-secondary">{{ log.action }}</span></td>
+                    <td>{{ log.details or '-' }}</td>
+                    <td>{% if log.target_type %}{{ log.target_type }} #{{ log.target_id }}{% else %}-{% endif %}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center">No activity logs found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

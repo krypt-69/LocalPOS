@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Services – Job Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fas fa-wrench"></i> Services</h1>
+        <p class="page-subtitle">Manage repair, installation, and contract jobs</p>
+    </div>
+    <a href="{{ url_for('services.new_service') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Job
+    </a>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" name="search" class="form-control" value="{{ search }}" placeholder="Customer, job #, item...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All</option>
+                    <option value="received" {% if status_filter == 'received' %}selected{% endif %}>Received</option>
+                    <option value="diagnosing" {% if status_filter == 'diagnosing' %}selected{% endif %}>Diagnosing</option>
+                    <option value="waiting_parts" {% if status_filter == 'waiting_parts' %}selected{% endif %}>Waiting Parts</option>
+                    <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="collected" {% if status_filter == 'collected' %}selected{% endif %}>Collected</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="submit" class="btn btn-primary d-block">Filter</button>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('services.ready_for_collection') }}" class="btn btn-info">Ready to Collect</a>
+                    <a href="{{ url_for('services.overdue') }}" class="btn btn-warning">Overdue</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr><th>Job #</th><th>Customer</th><th>Item</th><th>Status</th><th>Total</th><th>Balance</th><th>Created</th><th></th></tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td><strong>{{ job.job_number }}</strong></td>
+                    <td>{{ job.customer_name }}{% if job.customer_phone %}<br><small>{{ job.customer_phone }}</small>{% endif %}</td>
+                    <td>{{ job.item_description|truncate(40) }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if job.status == 'received' %}bg-secondary
+                            {% elif job.status == 'diagnosing' %}bg-info
+                            {% elif job.status == 'waiting_parts' %}bg-warning
+                            {% elif job.status == 'completed' %}bg-success
+                            {% elif job.status == 'collected' %}bg-success
+                            {% elif job.status == 'cancelled' %}bg-danger
+                            {% endif %}">
+                            {{ job.status|replace('_', ' ')|title }}
+                        </span>
+                    </td>
+                    <td>{{ job.total_cost|format_currency }}</td>
+                    <td class="{% if job.balance > 0 %}text-danger{% else %}text-success{% endif %}">
+                        {{ job.balance|format_currency }}
+                    </td>
+                    <td>{{ job.created_at.strftime('%d/%m/%Y') }}</td>
+                    <td><a href="{{ url_for('services.service_detail', job_id=job.id) }}" class="btn btn-sm btn-secondary">View</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center">No service jobs found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

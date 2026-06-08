@@ -265,7 +265,7 @@
         <div class="stat-info">
             <div class="stat-label">Total Revenue</div>
             <div class="stat-value" style="font-size:18px;">
-                KSh {{ "%.2f"|format(grand_total) }}
+                {{ grand_total|format_currency }}
             </div>
         </div>
     </div>
@@ -283,7 +283,7 @@
             </div>
             {% if users %}
             <div class="stat-sub">
-                KSh {{ "%.2f"|format(users[0].total_sales) }}
+                {{ users[0].total_sales|format_currency }}
             </div>
             {% endif %}
         </div>
@@ -309,7 +309,7 @@
         <div class="top-performer-meta">
             {{ users[0].sales_count }} transaction{{ 's' if users[0].sales_count != 1 else '' }}
             &nbsp;·&nbsp;
-            KSh {{ "%.2f"|format(users[0].total_sales) }} revenue
+            {{ users[0].total_sales|format_currency }} revenue
             &nbsp;·&nbsp;
             {% set top_pct = (users[0].total_sales / grand_total * 100) if grand_total > 0 else 0 %}
             {{ "%.1f"|format(top_pct) }}% of total sales
@@ -384,12 +384,12 @@
 
                     <!-- Revenue -->
                     <td class="revenue-cell">
-                        KSh {{ "%.2f"|format(user.total_sales) }}
+                        {{ user.total_sales|format_currency }}
                     </td>
 
                     <!-- Avg Sale -->
                     <td class="avg-cell col-hide-sm">
-                        KSh {{ "%.2f"|format(user.avg_sale or 0) }}
+                        {{ user.avg_sale or 0|format_currency }}
                     </td>
 
                     <!-- Contribution Bar -->
@@ -414,7 +414,7 @@
                     <td colspan="2">Grand Total</td>
                     <td style="text-align:center;">{{ grand_count }}</td>
                     <td style="text-align:right; color:var(--success);">
-                        KSh {{ "%.2f"|format(grand_total) }}
+                        {{ grand_total|format_currency }}
                     </td>
                     <td class="col-hide-sm"></td>
                     <td>

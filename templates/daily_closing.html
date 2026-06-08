@@ -415,7 +415,7 @@
         <div class="kpi-icon"><i class="fas fa-coins"></i></div>
         <div class="kpi-body">
             <div class="kpi-label">Total Sales</div>
-            <div class="kpi-value">KSh {{ "%.2f"|format(total_sales) }}</div>
+            <div class="kpi-value">{{ total_sales|format_currency }}</div>
             <div class="kpi-sub">Gross revenue</div>
         </div>
     </div>
@@ -423,7 +423,7 @@
         <div class="kpi-icon"><i class="fas fa-arrow-trend-up"></i></div>
         <div class="kpi-body">
             <div class="kpi-label">Total Profit</div>
-            <div class="kpi-value">KSh {{ "%.2f"|format(total_profit) }}</div>
+            <div class="kpi-value">{{ total_profit|format_currency }}</div>
             <div class="kpi-sub">
                 {% if total_sales > 0 %}
                     {{ "%.1f"|format((total_profit / total_sales) * 100) }}% margin
@@ -439,7 +439,7 @@
             <div class="kpi-label">Transactions</div>
             <div class="kpi-value">{{ total_transactions }}</div>
             <div class="kpi-sub">
-                KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }} avg
+                {{ total_sales / total_transactions if total_transactions > 0 else 0|format_currency }} avg
             </div>
         </div>
     </div>
@@ -477,7 +477,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="payment-amount">KSh {{ "%.2f"|format(cash_total) }}</div>
+                    <div class="payment-amount">{{ cash_total|format_currency }}</div>
                 </div>
                 <div class="payment-row">
                     <div class="payment-row-left">
@@ -492,7 +492,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="payment-amount">KSh {{ "%.2f"|format(mpesa_total) }}</div>
+                    <div class="payment-amount">{{ mpesa_total|format_currency }}</div>
                 </div>
                 <div class="payment-row">
                     <div class="payment-row-left">
@@ -507,7 +507,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="payment-amount">KSh {{ "%.2f"|format(credit_total) }}</div>
+                    <div class="payment-amount">{{ credit_total|format_currency }}</div>
                 </div>
             </div>
         </div>
@@ -540,19 +540,19 @@
             <div style="display:flex; flex-direction:column; gap:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:var(--bg-surface-2); border-radius:var(--radius-sm); border:1px solid var(--border);">
                     <span style="font-size:13px; color:var(--text-secondary);">Gross Revenue</span>
-                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--accent);">KSh {{ "%.2f"|format(total_sales) }}</span>
+                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--accent);">{{ total_sales|format_currency }}</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:var(--bg-surface-2); border-radius:var(--radius-sm); border:1px solid var(--border);">
                     <span style="font-size:13px; color:var(--text-secondary);">Net Profit</span>
-                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--success);">KSh {{ "%.2f"|format(total_profit) }}</span>
+                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--success);">{{ total_profit|format_currency }}</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:var(--bg-surface-2); border-radius:var(--radius-sm); border:1px solid var(--border);">
                     <span style="font-size:13px; color:var(--text-secondary);">Avg. Transaction</span>
-                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);">KSh {{ "%.2f"|format(total_sales / total_transactions if total_transactions > 0 else 0) }}</span>
+                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);">{{ total_sales / total_transactions if total_transactions > 0 else 0|format_currency }}</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; background:var(--bg-surface-2); border-radius:var(--radius-sm); border:1px solid var(--border);">
                     <span style="font-size:13px; color:var(--text-secondary);">Outstanding Credit</span>
-                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--warning);">KSh {{ "%.2f"|format(credit_total) }}</span>
+                    <span style="font-size:13px; font-weight:700; font-family:var(--font-mono); color:var(--warning);">{{ credit_total|format_currency }}</span>
                 </div>
             </div>
         </div>
@@ -591,7 +591,7 @@
                         <span style="font-size:13px;">{{ sale.items|length if sale.items else 0 }}</span>
                         <span style="font-size:12px; color:var(--text-muted);">items</span>
                     </td>
-                    <td class="amount-cell">KSh {{ "%.2f"|format(sale.final_amount) }}</td>
+                    <td class="amount-cell">{{ sale.final_amount|format_currency }}</td>
                     <td>
                         {% if sale.payment_method == 'cash' %}
                             <span class="badge badge-success"><i class="fas fa-money-bill-wave"></i> Cash</span>

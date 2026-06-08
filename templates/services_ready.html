@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Ready for Collection{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div><h1 class="page-title"><i class="fas fa-box-open"></i> Ready for Collection</h1></div>
+    <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">All Jobs</a>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Job #</th><th>Customer</th><th>Item</th><th>Completed</th><th>Balance</th><th></th></tr></thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td><strong>{{ job.job_number }}</strong></td>
+                    <td>{{ job.customer_name }}{% if job.customer_phone %}<br><small>{{ job.customer_phone }}</small>{% endif %}</td>
+                    <td>{{ job.item_description }}</td>
+                    <td>{{ job.completed_at.strftime('%d/%m/%Y') if job.completed_at else 'N/A' }}</td>
+                    <td class="{% if job.balance > 0 %}text-danger{% else %}text-success{% endif %}">{{ job.balance|format_currency }}</td>
+                    <td><a href="{{ url_for('services.service_detail', job_id=job.id) }}" class="btn btn-sm btn-primary">Mark Collected</a></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center">No jobs ready for collection</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

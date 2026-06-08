@@ -377,7 +377,6 @@
 
 {% block content %}
 
-<!-- Page Header -->
 <div class="page-header">
     <div>
         <h1 class="page-title">Stock Out</h1>
@@ -385,7 +384,6 @@
     </div>
 </div>
 
-<!-- Mode Tabs -->
 <div class="mode-tabs">
     <button class="mode-tab active" id="posModeBtn" onclick="setMode('pos')">
         <i class="fas fa-bolt"></i> POS Mode
@@ -397,88 +395,71 @@
     </button>
 </div>
 
-<!-- Main Grid -->
 <div class="stockout-grid">
 
-    <!-- LEFT: Products Panel -->
-    <div>
-
-        <!-- POS View -->
-        <div id="posView">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-header-title">Products</span>
-                </div>
-                <div class="card-body">
-                    <div class="search-row">
-                        <div class="search-input-wrap">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="searchProducts" class="form-control"
-                                   placeholder="Search products…">
-                        </div>
-                        <select id="categoryFilter" class="form-control">
-                            <option value="">All Categories</option>
-                            {% for cat in categories %}
-                            <option value="{{ cat.id }}">{{ cat.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="products-grid" id="productsGrid">
-                        <!-- Loaded via JS -->
-                    </div>
-                </div>
+    <div id="posView">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Products</span>
             </div>
-        </div>
-
-        <!-- Form View -->
-        <div id="formView" style="display:none;">
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-header-title">Add Product</span>
-                </div>
-                <div class="card-body">
-                    <div class="form-mode-grid">
-                        <div class="form-group mb-0">
-                            <label class="form-label">Product</label>
-                            <select id="productSelect" class="form-control">
-                                <option value="">Select a product…</option>
-                                {% for product in products %}
-                                <option value="{{ product.id }}"
-                                        data-price="{{ product.selling_price }}"
-                                        data-stock="{{ product.current_stock }}">
-                                    {{ product.name }} — Stock: {{ product.current_stock }} — KSh {{ product.selling_price }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group mb-0">
-                            <label class="form-label">Quantity</label>
-                            <input type="number" id="formQuantity" class="form-control"
-                                   value="1" min="1">
-                        </div>
-                        <div class="form-group mb-0">
-                            <label class="form-label">Price Override</label>
-                            <input type="number" id="priceOverride" class="form-control"
-                                   placeholder="Default">
-                        </div>
+            <div class="card-body">
+                <div class="search-row">
+                    <div class="search-input-wrap">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchProducts" class="form-control" placeholder="Search products…">
                     </div>
-                    <button class="btn btn-primary mt-3" onclick="addProductToCart()">
-                        <i class="fas fa-cart-plus"></i> Add to Cart
-                    </button>
+                    <select id="categoryFilter" class="form-control">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
+                <div class="products-grid" id="productsGrid"></div>
             </div>
         </div>
     </div>
 
-    <!-- RIGHT: Cart Panel -->
-    <div class="cart-panel">
+    <div id="formView" style="display:none;">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-header-title">Add Product</span>
+            </div>
+            <div class="card-body">
+                <div class="form-mode-grid">
+                    <div class="form-group mb-0">
+                        <label class="form-label">Product</label>
+                        <select id="productSelect" class="form-control">
+                            <option value="">Select a product…</option>
+                            {% for product in products %}
+                            <option value="{{ product.id }}" data-price="{{ product.selling_price }}" data-stock="{{ product.current_stock }}">
+                                {{ product.name }} — Stock: {{ product.current_stock }} — {{ product.selling_price|format_currency }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="formQuantity" class="form-control" value="1" min="1">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Price Override</label>
+                        <input type="number" id="priceOverride" class="form-control" placeholder="Default">
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3" onclick="addProductToCart()">
+                    <i class="fas fa-cart-plus"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+    </div>
 
+    <div class="cart-panel">
         <div class="cart-header">
             <div class="cart-header-title">
                 <i class="fas fa-shopping-basket"></i> Current Sale
             </div>
-            <button class="btn btn-sm btn-ghost" onclick="clearCart()" title="Clear cart"
-                    style="color: var(--danger); font-size:12px;">
+            <button class="btn btn-sm btn-ghost" onclick="clearCart()" title="Clear cart" style="color: var(--danger); font-size:12px;">
                 <i class="fas fa-trash-can"></i> Clear
             </button>
         </div>
@@ -490,27 +471,23 @@
                     <div class="cart-item-name">{{ item.name }}</div>
                     <div class="cart-item-row">
                         <div class="qty-control">
-                            <button class="qty-btn"
-                                    onclick="updateQuantity({{ loop.index0 }}, {{ item.quantity - 1 }})">
+                            <button class="qty-btn" onclick="updateQuantity({{ loop.index0 }}, {{ item.quantity - 1 }})">
                                 <i class="fas fa-minus"></i>
                             </button>
                             <span class="qty-value">{{ item.quantity }}</span>
-                            <button class="qty-btn"
-                                    onclick="updateQuantity({{ loop.index0 }}, {{ item.quantity + 1 }})">
+                            <button class="qty-btn" onclick="updateQuantity({{ loop.index0 }}, {{ item.quantity + 1 }})">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
                         <span class="cart-item-total">
-                            KSh {{ "%.2f"|format(item.quantity * item.price) }}
+                            {{ (item.quantity * item.price)|format_currency }}
                         </span>
-                        <button class="cart-remove"
-                                onclick="removeFromCart({{ loop.index0 }})"
-                                title="Remove item">
+                        <button class="cart-remove" onclick="removeFromCart({{ loop.index0 }})" title="Remove item">
                             <i class="fas fa-xmark"></i>
                         </button>
                     </div>
                     <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
-                        KSh {{ "%.2f"|format(item.price) }} each
+                        {{ item.price|format_currency }} each
                     </div>
                 </div>
                 {% endfor %}
@@ -524,14 +501,10 @@
         </div>
 
         <div class="cart-footer">
-
-            <!-- Subtotal -->
             <div class="totals-row">
                 <span class="totals-label">Subtotal</span>
-                <span class="totals-value">KSh <span id="subtotal">0.00</span></span>
+                <span class="totals-value">{{ subtotal|default(0)|format_currency }}</span>
             </div>
-
-            <!-- Discount -->
             <div class="totals-row">
                 <span class="totals-label">Discount</span>
                 <div class="discount-row">
@@ -540,109 +513,77 @@
                         <option value="percentage">%</option>
                         <option value="fixed">Fixed</option>
                     </select>
-                    <input type="number" id="discountValue" class="form-control form-control-sm"
-                           value="0" step="0.01" min="0">
+                    <input type="number" id="discountValue" class="form-control form-control-sm" value="0" step="0.01" min="0">
                 </div>
             </div>
-
-            <!-- Grand Total -->
             <div class="totals-row grand">
                 <span>Total</span>
-                <span>KSh <span id="total">0.00</span></span>
+                <span>{{ total|default(0)|format_currency }}</span>
             </div>
-
-            <!-- Actions -->
-            <button class="btn btn-success" style="width:100%;"
-                    onclick="openCheckout()">
+            <button class="btn btn-success" style="width:100%;" onclick="openCheckout()">
                 <i class="fas fa-credit-card"></i> Checkout
             </button>
-            <button class="btn btn-secondary" style="width:100%;"
-                    onclick="holdSale()">
+            <button class="btn btn-secondary" style="width:100%;" onclick="holdSale()">
                 <i class="fas fa-clock"></i> Hold Sale
             </button>
         </div>
     </div>
 </div>
 
-<!-- ── Checkout Modal ────────────────────────────────── -->
 <div class="modal-backdrop-custom" id="checkoutModal">
     <div class="modal-box">
         <div class="modal-head">
-            <div class="modal-head-title">
-                <i class="fas fa-circle-check"></i> Complete Sale
-            </div>
-            <button class="modal-close" onclick="closeCheckout()">
-                <i class="fas fa-xmark"></i>
-            </button>
+            <div class="modal-head-title"><i class="fas fa-circle-check"></i> Complete Sale</div>
+            <button class="modal-close" onclick="closeCheckout()"><i class="fas fa-xmark"></i></button>
         </div>
-
         <form method="POST" action="{{ url_for('stock_out.checkout') }}" id="checkoutForm">
             <div class="modal-body-inner">
-
                 <div class="form-group mb-0">
                     <label class="form-label">Payment Method</label>
-                    <select name="payment_method" id="paymentMethod" class="form-control"
-                            onchange="toggleCreditFields()" required>
+                    <select name="payment_method" id="paymentMethod" class="form-control" onchange="toggleCreditFields()" required>
                         <option value="cash">Cash</option>
                         <option value="mpesa">M-Pesa</option>
                         <option value="credit">Credit</option>
                     </select>
                 </div>
-
-                <!-- Credit Fields -->
                 <div id="creditFields" style="display:none; display:flex; flex-direction:column; gap:14px;">
                     <div class="form-group mb-0">
                         <label class="form-label">Customer Name <span style="color:var(--danger)">*</span></label>
-                        <input type="text" name="customer_name" class="form-control"
-                               placeholder="Full name">
+                        <input type="text" name="customer_name" class="form-control" placeholder="Full name">
                     </div>
                     <div class="form-group mb-0">
                         <label class="form-label">Phone Number</label>
-                        <input type="text" name="customer_phone" class="form-control"
-                               placeholder="e.g. 0712 345 678">
+                        <input type="text" name="customer_phone" class="form-control" placeholder="e.g. 0712 345 678">
                     </div>
                     <div class="form-group mb-0">
                         <label class="form-label">Due Date</label>
                         <input type="date" name="due_date" class="form-control">
                     </div>
                 </div>
-
                 <div class="form-group mb-0">
                     <label class="form-label">Amount Paid</label>
-                    <input type="number" name="amount_paid" id="amountPaid"
-                           class="form-control" step="0.01" placeholder="0.00">
+                    <input type="number" name="amount_paid" id="amountPaid" class="form-control" step="0.01" placeholder="0.00">
                 </div>
-
-                <!-- Sale Summary inside modal -->
-                <div style="background:var(--bg-surface-2); border:1px solid var(--border);
-                            border-radius:var(--radius-md); padding:12px 14px; font-size:13px;">
+                <div style="background:var(--bg-surface-2); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; font-size:13px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                         <span style="color:var(--text-secondary);">Subtotal</span>
-                        <span>KSh <span id="modalSubtotal">0.00</span></span>
+                        <span id="modalSubtotal">{{ subtotal|default(0)|format_currency }}</span>
                     </div>
-                    <div style="display:flex; justify-content:space-between; padding-top:8px;
-                                border-top:1px solid var(--border); font-weight:700; font-size:14px;">
+                    <div style="display:flex; justify-content:space-between; padding-top:8px; border-top:1px solid var(--border); font-weight:700; font-size:14px;">
                         <span>Total Due</span>
-                        <span style="color:var(--accent);">KSh <span id="modalTotal">0.00</span></span>
+                        <span style="color:var(--accent);" id="modalTotal">{{ total|default(0)|format_currency }}</span>
                     </div>
                 </div>
-
                 <div class="form-group mb-0">
                     <label class="form-label">Notes</label>
-                    <textarea name="notes" class="form-control" rows="2"
-                              placeholder="Optional note…"></textarea>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Optional note…"></textarea>
                 </div>
-
                 <input type="hidden" name="discount_type" id="hiddenDiscountType">
                 <input type="hidden" name="discount_value" id="hiddenDiscountValue">
             </div>
-
             <div class="modal-foot">
-                <button type="button" class="btn btn-secondary"
-                        onclick="closeCheckout()">Cancel</button>
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-circle-check"></i> Complete Sale
-                </button>
+                <button type="button" class="btn btn-secondary" onclick="closeCheckout()">Cancel</button>
+                <button type="submit" class="btn btn-success"><i class="fas fa-circle-check"></i> Complete Sale</button>
             </div>
         </form>
     </div>
@@ -652,7 +593,6 @@
 let currentMode = 'pos';
 let cart = {{ cart|tojson }};
 
-/* ── Mode ─────────────────────────────────────────────── */
 function setMode(mode) {
     currentMode = mode;
     const isPOS = mode === 'pos';
@@ -663,18 +603,15 @@ function setMode(mode) {
     if (isPOS) loadProducts();
 }
 
-/* ── Products ─────────────────────────────────────────── */
 function loadProducts() {
     const category = document.getElementById('categoryFilter')?.value || '';
     const search   = document.getElementById('searchProducts')?.value  || '';
-
     fetch(`/stock-out/api/products?category=${category}&search=${encodeURIComponent(search)}`)
         .then(r => r.json())
         .then(products => {
             const grid = document.getElementById('productsGrid');
             if (!products.length) {
-                grid.innerHTML = `<div style="grid-column:1/-1; padding:32px; text-align:center;
-                    color:var(--text-muted); font-size:13px;">
+                grid.innerHTML = `<div style="grid-column:1/-1; padding:32px; text-align:center; color:var(--text-muted); font-size:13px;">
                     <i class="fas fa-box-open" style="font-size:24px; opacity:0.4; display:block; margin-bottom:8px;"></i>
                     No products found
                 </div>`;
@@ -687,7 +624,7 @@ function loadProducts() {
                 return `
                 <div class="product-tile ${cls}" onclick="addToCart(${p.id}, ${p.price})">
                     <div class="product-tile-name">${p.name}</div>
-                    <div class="product-tile-price">KSh ${p.price}</div>
+                    <div class="product-tile-price">KSh ${p.price.toLocaleString()}</div>
                     <div class="product-tile-stock">
                         ${out ? '<span style="color:var(--danger)">Out of stock</span>'
                               : low ? `<span style="color:var(--warning)">Low: ${p.stock}</span>`
@@ -751,7 +688,6 @@ function holdSale() {
     fetch('/stock-out/hold-sale', {method: 'POST'}).then(() => location.reload());
 }
 
-/* ── Totals ───────────────────────────────────────────── */
 function calculateTotals() {
     let subtotal = 0;
     {% for item in cart %}subtotal += {{ item.quantity * item.price }};{% endfor %}
@@ -774,7 +710,6 @@ function calculateTotals() {
     if (amountPaid && !amountPaid.value) amountPaid.value = total.toFixed(2);
 }
 
-/* ── Checkout Modal ───────────────────────────────────── */
 function openCheckout() {
     calculateTotals();
     document.getElementById('checkoutModal').classList.add('open');
@@ -794,7 +729,6 @@ function toggleCreditFields() {
     el.style.display = method === 'credit' ? 'flex' : 'none';
 }
 
-/* ── Init ─────────────────────────────────────────────── */
 document.getElementById('discountType')?.addEventListener('change', calculateTotals);
 document.getElementById('discountValue')?.addEventListener('input',  calculateTotals);
 document.getElementById('searchProducts')?.addEventListener('input', loadProducts);
@@ -803,5 +737,4 @@ document.getElementById('categoryFilter')?.addEventListener('change', loadProduc
 setMode('pos');
 calculateTotals();
 </script>
-
 {% endblock %}

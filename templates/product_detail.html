@@ -389,7 +389,7 @@
                             </td>
                             <td class="col-hide-sm" style="text-align:right;
                                 font-variant-numeric:tabular-nums; font-size:13px;">
-                                KSh {{ "%.2f"|format(entry.buying_price) }}
+                                {{ entry.buying_price|format_currency }}
                             </td>
                             <td class="col-hide-sm"
                                 style="font-size:13px; color:var(--text-secondary);">
@@ -441,11 +441,11 @@
                             </td>
                             <td class="col-hide-sm" style="text-align:right;
                                 font-variant-numeric:tabular-nums; font-size:13px;">
-                                KSh {{ "%.2f"|format(item.price_at_sale) }}
+                                {{ item.price_at_sale|format_currency }}
                             </td>
                             <td style="text-align:right; font-weight:700;
                                        font-variant-numeric:tabular-nums;">
-                                KSh {{ "%.2f"|format(item.total) }}
+                                {{ item.total|format_currency }}
                             </td>
                             <td>
                                 <span class="receipt-code">

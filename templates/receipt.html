@@ -29,20 +29,20 @@
                     <tr>
                         <td>{{ item.product.name }}</td>
                         <td class="text-center">{{ item.quantity }}</td>
-                        <td class="text-end">KSh {{ "%.2f"|format(item.price_at_sale) }}</td>
-                        <td class="text-end">KSh {{ "%.2f"|format(item.total) }}</td>
+                        <td class="text-end">{{ item.price_at_sale|format_currency }}</td>
+                        <td class="text-end">{{ item.total|format_currency }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="3" class="text-end"><strong>Subtotal:</strong></td><td class="text-end">KSh {{ "%.2f"|format(sale.total_amount) }}</td></tr>
+                    <tr><td colspan="3" class="text-end"><strong>Subtotal:</strong></td><td class="text-end">{{ sale.total_amount|format_currency }}</td></tr>
                     {% if sale.discount > 0 %}
-                    <tr><td colspan="3" class="text-end"><strong>Discount:</strong></td><td class="text-end">- KSh {{ "%.2f"|format(sale.discount) }}</td></tr>
+                    <tr><td colspan="3" class="text-end"><strong>Discount:</strong></td><td class="text-end">- {{ sale.discount|format_currency }}</td></tr>
                     {% endif %}
-                    <tr><td colspan="3" class="text-end"><strong>Total:</strong></td><td class="text-end"><strong>KSh {{ "%.2f"|format(sale.final_amount) }}</strong></td></tr>
-                    <tr><td colspan="3" class="text-end"><strong>Amount Paid:</strong></td><td class="text-end">KSh {{ "%.2f"|format(sale.amount_paid) }}</td></tr>
+                    <tr><td colspan="3" class="text-end"><strong>Total:</strong></td><td class="text-end"><strong>{{ sale.final_amount|format_currency }}</strong></td></tr>
+                    <tr><td colspan="3" class="text-end"><strong>Amount Paid:</strong></td><td class="text-end">{{ sale.amount_paid|format_currency }}</td></tr>
                     {% if sale.balance > 0 %}
-                    <tr><td colspan="3" class="text-end"><strong>Balance Due:</strong></td><td class="text-end text-danger">KSh {{ "%.2f"|format(sale.balance) }}</td></tr>
+                    <tr><td colspan="3" class="text-end"><strong>Balance Due:</strong></td><td class="text-end text-danger">{{ sale.balance|format_currency }}</td></tr>
                     {% endif %}
                     <tr><td colspan="3" class="text-end"><strong>Payment Method:</strong></td><td class="text-end">{{ sale.payment_method|upper }}</td></tr>
                 </tfoot>

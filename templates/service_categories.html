@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Service Categories & Types{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div><h1 class="page-title"><i class="fas fa-tags"></i> Service Configuration</h1></div>
+    <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">Back to Jobs</a>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">Add Category</div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="action" value="add_category">
+                    <div class="mb-2">
+                        <input type="text" name="name" class="form-control" placeholder="Category name (e.g., Repair)" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Category</button>
+                </form>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header">Existing Categories</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for cat in categories %}
+                    <li class="list-group-item">{{ cat.name }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">Add Service Type</div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="action" value="add_type">
+                    <div class="mb-2">
+                        <select name="category_id" class="form-select" required>
+                            <option value="">Select Category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" name="name" class="form-control" placeholder="Service type (e.g., Laptop Repair)" required>
+                    </div>
+                    <div class="mb-2">
+                        <input type="number" name="max_charge" class="form-control" step="0.01" placeholder="Max charge (0 = no limit)">
+                    </div>
+                    <button type="submit" class="btn btn-success">Add Type</button>
+                </form>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header">Service Types & Max Charges</div>
+            <div class="card-body">
+                <div class="table-wrapper">
+                    <table class="table table-sm">
+                        <thead><tr><th>Category</th><th>Type</th><th>Max Charge</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {% for st in service_types %}
+                            <tr>
+                                <td>{{ st.category.name }}</td>
+                                <td>{{ st.name }}</td>
+                                <td>
+                                    <form method="POST" class="d-flex gap-2">
+                                        <input type="hidden" name="action" value="edit_type">
+                                        <input type="hidden" name="type_id" value="{{ st.id }}">
+                                        <input type="number" name="max_charge" value="{{ st.max_charge }}" class="form-control form-control-sm" style="width:100px" step="0.01">
+                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form method="POST" onsubmit="return confirm('Delete {{ st.name }}? Only possible if no jobs exist.')">
+                                        <input type="hidden" name="action" value="delete_type">
+                                        <input type="hidden" name="type_id" value="{{ st.id }}">
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -234,7 +234,7 @@
         <div class="stat-info">
             <div class="stat-label">Total Revenue</div>
             <div class="stat-value" style="font-size:18px;">
-                KSh {{ "%.2f"|format(total_revenue or 0) }}
+                {{ total_revenue or 0|format_currency }}
             </div>
         </div>
     </div>
@@ -343,7 +343,7 @@
 
                     <!-- Revenue -->
                     <td class="num-cell revenue">
-                        KSh {{ "%.2f"|format(product.total_revenue or 0) }}
+                        {{ product.total_revenue or 0|format_currency }}
                     </td>
 
                     <!-- Current Stock -->
@@ -359,12 +359,12 @@
 
                     <!-- Profit per unit -->
                     <td class="num-cell profit col-hide-sm">
-                        KSh {{ "%.2f"|format(profit_per_unit) }}
+                        {{ profit_per_unit|format_currency }}
                     </td>
 
                     <!-- Total Profit -->
                     <td class="num-cell profit">
-                        KSh {{ "%.2f"|format(total_profit) }}
+                        {{ total_profit|format_currency }}
                     </td>
 
                 </tr>
@@ -378,7 +378,7 @@
                         {{ total_units or 0 }} units
                     </td>
                     <td style="text-align:right; font-variant-numeric:tabular-nums;">
-                        KSh {{ "%.2f"|format(total_revenue or 0) }}
+                        {{ total_revenue or 0|format_currency }}
                     </td>
                     <td class="col-hide-sm"></td>
                     <td class="col-hide-sm"></td>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Users Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div><h1 class="page-title"><i class="fas fa-users"></i> Users</h1><p class="page-subtitle">Manage system users and roles</p></div>
+    <a href="{{ url_for('users.new_user') }}" class="btn btn-primary"><i class="fas fa-plus"></i> New User</a>
+</div>
+
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr><th>Username</th><th>Full Name</th><th>Role</th><th>Status</th><th>Created</th><th>Last Login</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr {% if user.id == current_user.id %}class="table-info"{% endif %}>
+                    <td><strong>{{ user.username }}</strong>{% if user.id == current_user.id %} (you){% endif %}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td><span class="badge {% if user.role == 'owner' %}bg-danger{% elif user.role == 'admin' %}bg-warning{% else %}bg-secondary{% endif %}">{{ user.role }}</span></td>
+                    <td>{% if user.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Inactive</span>{% endif %}</td>
+                    <td>{{ user.created_at.strftime('%d/%m/%Y') if user.created_at else 'N/A' }}</td>
+                    <td>{{ user.last_login.strftime('%d/%m/%Y %H:%M') if user.last_login else 'Never' }}</td>
+                    <td>
+                        <a href="{{ url_for('users.edit_user', user_id=user.id) }}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Edit</a>
+                        {% if user.id != current_user.id %}
+                        <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ user.id }}, '{{ user.username }}')"><i class="fas fa-trash"></i> Delete</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function confirmDelete(userId, username) {
+    if (confirm(`Delete user "${username}"? This action cannot be undone.`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/users/delete/${userId}`;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

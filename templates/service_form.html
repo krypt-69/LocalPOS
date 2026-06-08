@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if job else 'New' }} Service Job{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ 'Edit' if job else 'New' }} Service Job</h1>
+        <p class="page-subtitle">{{ job.job_number if job else 'Create a new service job' }}</p>
+    </div>
+    <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">Back to Jobs</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Customer Name *</label>
+                    <input type="text" name="customer_name" class="form-control" value="{{ job.customer_name if job else '' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="customer_phone" class="form-control" value="{{ job.customer_phone if job else '' }}">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Service Category</label>
+                    <select name="category_id" id="category_id" class="form-select">
+                        <option value="">Select category first</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}" {% if job and job.service_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Service Type *</label>
+                    <select name="service_type_id" id="service_type_id" class="form-select" required>
+                        <option value="">Select category first</option>
+                        {% for st in service_types %}
+                        <option value="{{ st.id }}" data-cat="{{ st.category_id }}" data-max="{{ st.max_charge }}" {% if job and job.service_type_id == st.id %}selected{% endif %}>
+                            {{ st.name }} (max KSh {{ st.max_charge|format_currency if st.max_charge > 0 else 'No limit' }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Item / Device *</label>
+                    <input type="text" name="item_description" class="form-control" value="{{ job.item_description if job else '' }}" required>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Issue Description</label>
+                    <textarea name="issue_description" class="form-control" rows="3">{{ job.issue_description if job else '' }}</textarea>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Service Charge (KSh)</label>
+                    <input type="number" name="service_charge" id="service_charge" class="form-control" step="0.01" value="{{ job.service_charge if job else 0 }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Parts Cost (KSh)</label>
+                    <input type="number" name="parts_cost" id="parts_cost" class="form-control" step="0.01" value="{{ job.parts_cost if job else 0 }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Total Cost</label>
+                    <input type="text" id="total_cost" class="form-control" readonly disabled>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Amount Paid</label>
+                    <input type="number" name="amount_paid" id="amount_paid" class="form-control" step="0.01" value="{{ job.amount_paid if job else 0 }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Balance Due</label>
+                    <input type="text" id="balance" class="form-control" readonly disabled>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Expected Completion Date</label>
+                    <input type="date" name="expected_completion_date" class="form-control" value="{{ job.expected_completion_date.strftime('%Y-%m-%d') if job and job.expected_completion_date else '' }}">
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Notes (visible to customer)</label>
+                    <textarea name="notes" class="form-control" rows="2">{{ job.notes if job else '' }}</textarea>
+                </div>
+                {% if current_user.role in ['owner', 'admin'] %}
+                <div class="col-md-12">
+                    <label class="form-label">Technician Notes (internal)</label>
+                    <textarea name="technician_notes" class="form-control" rows="2">{{ job.technician_notes if job else '' }}</textarea>
+                </div>
+                {% endif %}
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">Save Job</button>
+                <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const catSelect = document.getElementById('category_id');
+    const typeSelect = document.getElementById('service_type_id');
+    const serviceCharge = document.getElementById('service_charge');
+    const partsCost = document.getElementById('parts_cost');
+    const totalSpan = document.getElementById('total_cost');
+    const balanceSpan = document.getElementById('balance');
+    const amountPaid = document.getElementById('amount_paid');
+
+    function updateTotals() {
+        let charge = parseFloat(serviceCharge.value) || 0;
+        let parts = parseFloat(partsCost.value) || 0;
+        let total = charge + parts;
+        totalSpan.value = total.toFixed(2);
+        let paid = parseFloat(amountPaid.value) || 0;
+        let balance = total - paid;
+        balanceSpan.value = balance.toFixed(2);
+    }
+
+    serviceCharge.addEventListener('input', updateTotals);
+    partsCost.addEventListener('input', updateTotals);
+    amountPaid.addEventListener('input', updateTotals);
+    updateTotals();
+
+    // Filter service types by selected category
+    function filterTypes() {
+        const catId = catSelect.value;
+        for (let opt of typeSelect.options) {
+            if (opt.value === "") continue;
+            const optCat = opt.getAttribute('data-cat');
+            opt.style.display = (catId === optCat) ? '' : 'none';
+        }
+        // Select first visible option
+        for (let opt of typeSelect.options) {
+            if (opt.value !== "" && opt.style.display !== 'none') {
+                opt.selected = true;
+                break;
+            }
+        }
+        // Update max charge warning
+        const selected = typeSelect.options[typeSelect.selectedIndex];
+        const maxCharge = parseFloat(selected?.getAttribute('data-max') || 0);
+        if (maxCharge > 0) {
+            serviceCharge.max = maxCharge;
+            serviceCharge.placeholder = `Max KSh ${maxCharge.toFixed(2)}`;
+        } else {
+            serviceCharge.removeAttribute('max');
+            serviceCharge.placeholder = 'No limit';
+        }
+    }
+
+    catSelect.addEventListener('change', filterTypes);
+    typeSelect.addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        const maxCharge = parseFloat(selected?.getAttribute('data-max') || 0);
+        if (maxCharge > 0) {
+            serviceCharge.max = maxCharge;
+            serviceCharge.placeholder = `Max KSh ${maxCharge.toFixed(2)}`;
+            if (parseFloat(serviceCharge.value) > maxCharge) {
+                serviceCharge.value = maxCharge;
+                updateTotals();
+                alert(`Maximum charge for this service type is KSh ${maxCharge.toLocaleString()}`);
+            }
+        } else {
+            serviceCharge.removeAttribute('max');
+            serviceCharge.placeholder = 'No limit';
+        }
+    });
+    filterTypes();
+</script>
+{% endblock %}

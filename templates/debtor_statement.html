@@ -403,19 +403,19 @@
             <div class="balance-bar-item">
                 <div class="balance-bar-label">Total Owed</div>
                 <div class="balance-bar-value">
-                    KSh {{ "%.2f"|format(debtor.total_owed) }}
+                    {{ debtor.total_owed|format_currency }}
                 </div>
             </div>
             <div class="balance-bar-item">
                 <div class="balance-bar-label">Total Paid</div>
                 <div class="balance-bar-value success">
-                    KSh {{ "%.2f"|format(debtor.amount_paid) }}
+                    {{ debtor.amount_paid|format_currency }}
                 </div>
             </div>
             <div class="balance-bar-item">
                 <div class="balance-bar-label">Outstanding Balance</div>
                 <div class="balance-bar-value danger">
-                    KSh {{ "%.2f"|format(debtor.balance) }}
+                    {{ debtor.balance|format_currency }}
                 </div>
             </div>
         </div>
@@ -442,10 +442,10 @@
                             {{ item.quantity }}
                         </td>
                         <td class="col-right">
-                            KSh {{ "%.2f"|format(item.price_at_sale) }}
+                            {{ item.price_at_sale|format_currency }}
                         </td>
                         <td class="col-right" style="font-weight:600;">
-                            KSh {{ "%.2f"|format(item.total) }}
+                            {{ item.total|format_currency }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -454,7 +454,7 @@
                     <tr>
                         <td colspan="3" class="col-right">Grand Total</td>
                         <td class="col-right">
-                            KSh {{ "%.2f"|format(sale.total_amount if sale else 0) }}
+                            {{ sale.total_amount if sale else 0|format_currency }}
                         </td>
                     </tr>
                 </tfoot>
@@ -483,7 +483,7 @@
                                 {{ payment.payment_date.strftime('%d %b %Y') }}
                             </td>
                             <td class="col-right col-payment">
-                                KSh {{ "%.2f"|format(payment.amount) }}
+                                {{ payment.amount|format_currency }}
                             </td>
                             <td>
                                 <span class="method-badge method-{{ payment.payment_method }}">

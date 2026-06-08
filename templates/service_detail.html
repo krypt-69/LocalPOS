@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Service {{ job.job_number }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ job.job_number }} – {{ job.customer_name }}</h1>
+        <p class="page-subtitle">{{ job.item_description }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">Back</a>
+        {% if current_user.role in ['owner', 'admin'] %}
+        <a href="{{ url_for('services.edit_service', job_id=job.id) }}" class="btn btn-warning">Edit</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="card">
+        <div class="card-header bg-primary text-white">Job Details</div>
+        <div class="card-body">
+            <p><strong>Status:</strong> 
+                <span class="badge 
+                    {% if job.status == 'received' %}bg-secondary
+                    {% elif job.status == 'diagnosing' %}bg-info
+                    {% elif job.status == 'waiting_parts' %}bg-warning
+                    {% elif job.status == 'completed' %}bg-success
+                    {% elif job.status == 'collected' %}bg-success
+                    {% elif job.status == 'cancelled' %}bg-danger
+                    {% endif %}">
+                    {{ job.status|replace('_', ' ')|title }}
+                </span>
+            </p>
+            <p><strong>Customer:</strong> {{ job.customer_name }}{% if job.customer_phone %} ({{ job.customer_phone }}){% endif %}</p>
+            <p><strong>Service Type:</strong> {{ job.service_type.name if job.service_type else 'N/A' }}</p>
+            <p><strong>Item:</strong> {{ job.item_description }}</p>
+            <p><strong>Issue:</strong> {{ job.issue_description or 'N/A' }}</p>
+            <p><strong>Expected Completion:</strong> {{ job.expected_completion_date.strftime('%d/%m/%Y') if job.expected_completion_date else 'Not set' }}</p>
+            <p><strong>Created:</strong> {{ job.created_at.strftime('%d/%m/%Y %H:%M') }} by {{ job.creator.username }}</p>
+            {% if job.completed_at %}<p><strong>Completed:</strong> {{ job.completed_at.strftime('%d/%m/%Y %H:%M') }}</p>{% endif %}
+            {% if job.collected_at %}<p><strong>Collected:</strong> {{ job.collected_at.strftime('%d/%m/%Y %H:%M') }}</p>{% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-success text-white">Financial Summary</div>
+        <div class="card-body">
+            <p><strong>Service Charge:</strong> {{ job.service_charge|format_currency }}</p>
+            <p><strong>Parts Cost:</strong> {{ job.parts_cost|format_currency }}</p>
+            <p><strong>Total Cost:</strong> {{ job.total_cost|format_currency }}</p>
+            <p><strong>Amount Paid:</strong> {{ job.amount_paid|format_currency }}</p>
+            <p><strong>Balance Due:</strong> <span class="{% if job.balance > 0 %}text-danger{% else %}text-success{% endif %}">{{ job.balance|format_currency }}</span></p>
+            <p><strong>Payment Status:</strong> 
+                <span class="badge {% if job.payment_status == 'paid' %}bg-success{% elif job.payment_status == 'partial' %}bg-warning{% else %}bg-danger{% endif %}">
+                    {{ job.payment_status|title }}
+                </span>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="card">
+        <div class="card-header bg-info text-white">Update Status</div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('services.update_status', job_id=job.id) }}">
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <select name="status" class="form-select">
+                            <option value="received" {% if job.status == 'received' %}selected{% endif %}>Received</option>
+                            <option value="diagnosing" {% if job.status == 'diagnosing' %}selected{% endif %}>Diagnosing</option>
+                            <option value="waiting_parts" {% if job.status == 'waiting_parts' %}selected{% endif %}>Waiting Parts</option>
+                            <option value="completed" {% if job.status == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="collected" {% if job.status == 'collected' %}selected{% endif %}>Collected</option>
+                            <option value="cancelled" {% if job.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-primary w-100">Change Status</button>
+                    </div>
+                    <div class="col-12">
+                        <textarea name="notes" class="form-control" placeholder="Optional notes for this status change" rows="2"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-warning text-dark">Record Payment</div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('services.record_payment', job_id=job.id) }}">
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <input type="number" name="amount" class="form-control" placeholder="Amount" step="0.01" required>
+                    </div>
+                    <div class="col-md-6">
+                        <select name="payment_method" class="form-select">
+                            <option value="cash">Cash</option>
+                            <option value="mpesa">M-Pesa</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success w-100">Record Payment</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header bg-secondary text-white">Activity Timeline</div>
+    <div class="card-body">
+        {% if history %}
+        <div class="timeline">
+            {% for h in history %}
+            <div class="border-bottom pb-2 mb-2">
+                <small class="text-muted">{{ h.changed_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                <strong>{{ h.changed_by_username or h.changed_by }}</strong>
+                {% if h.status_from and h.status_to %}
+                    changed status from <span class="badge bg-secondary">{{ h.status_from|replace('_', ' ')|title }}</span> to <span class="badge bg-primary">{{ h.status_to|replace('_', ' ')|title }}</span>
+                {% elif h.status_to %}
+                    status set to <span class="badge bg-primary">{{ h.status_to|replace('_', ' ')|title }}</span>
+                {% endif %}
+                {% if h.notes %}
+                <div class="text-muted small mt-1">{{ h.notes }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-muted">No history yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Notes</div>
+    <div class="card-body">
+        {% if job.notes %}<p><strong>Customer notes:</strong> {{ job.notes }}</p>{% endif %}
+        {% if job.technician_notes and current_user.role in ['owner', 'admin'] %}
+        <p><strong>Internal notes:</strong> {{ job.technician_notes }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

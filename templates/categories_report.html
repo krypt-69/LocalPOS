@@ -156,7 +156,7 @@
         <div class="stat-info">
             <div class="stat-label">Total Revenue</div>
             <div class="stat-value" style="font-size:18px;">
-                KSh {{ "%.2f"|format(total_revenue) }}
+                {{ total_revenue|format_currency }}
             </div>
         </div>
     </div>
@@ -233,7 +233,7 @@
                     </td>
 
                     <td class="cat-revenue" style="text-align:right;">
-                        KSh {{ "%.2f"|format(cat.revenue) }}
+                        {{ cat.revenue|format_currency }}
                     </td>
 
                     <td class="pct-cell">
@@ -263,7 +263,7 @@
                         {{ categories|sum(attribute='items_sold') }}
                     </td>
                     <td style="text-align:right; color:var(--success);">
-                        KSh {{ "%.2f"|format(total_revenue) }}
+                        {{ total_revenue|format_currency }}
                     </td>
                     <td>
                         <div class="pct-bar-wrap">

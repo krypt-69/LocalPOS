@@ -299,11 +299,11 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">Buying Price</span>
-                    <span class="info-value">KSh {{ "%.2f"|format(product.buying_price) }}</span>
+                    <span class="info-value">{{ product.buying_price|format_currency }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Selling Price</span>
-                    <span class="info-value">KSh {{ "%.2f"|format(product.selling_price) }}</span>
+                    <span class="info-value">{{ product.selling_price|format_currency }}</span>
                 </div>
             </div>
         </div>
