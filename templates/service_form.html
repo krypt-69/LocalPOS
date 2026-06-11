@@ -2,99 +2,355 @@
 
 {% block title %}{{ 'Edit' if job else 'New' }} Service Job{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ===== Progress tracker ===== */
+.wizard-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.wizard-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+.wizard-step-circle {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--hover-bg, #f0f0f0);
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    flex-shrink: 0;
+    transition: background .15s ease, color .15s ease;
+}
+.wizard-step-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    transition: color .15s ease;
+}
+.wizard-step.active .wizard-step-circle { background: var(--primary, #4f46e5); color: #fff; }
+.wizard-step.active .wizard-step-label { color: var(--primary, #4f46e5); }
+.wizard-step.done .wizard-step-circle { background: var(--success-soft); color: var(--success); }
+.wizard-step.done .wizard-step-label { color: var(--success); }
+.wizard-connector {
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--border-color, #e5e5e5);
+    min-width: 16px;
+}
+
+/* ===== Panels ===== */
+.wizard-panel { display: none; }
+.wizard-panel.active { display: block; }
+.wizard-panel-intro {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+/* ===== Form layout ===== */
+.job-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 16px;
+}
+.job-form-grid .form-group { margin-bottom: 0; }
+.span-2 { grid-column: span 2; }
+
+.form-label {
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+}
+.field-hint {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 3px;
+}
+
+/* ===== Costs summary block ===== */
+.cost-summary {
+    background: var(--hover-bg, #f7f7f9);
+    border: 1px solid var(--border-color, #ececec);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+}
+.cost-summary .form-group { margin-bottom: 0; }
+.cost-readonly {
+    background: transparent;
+    border: none;
+    font-weight: 800;
+    font-size: 18px;
+    padding-left: 0;
+    font-variant-numeric: tabular-nums;
+}
+.cost-readonly.balance-due { color: var(--danger); }
+.cost-readonly.balance-clear { color: var(--success); }
+
+/* Money inputs with KSh prefix */
+.money-input-wrap { position: relative; }
+.money-input-wrap .currency-prefix {
+    position: absolute;
+    left: 11px; top: 50%; transform: translateY(-50%);
+    font-size: 12.5px; font-weight: 700; color: var(--text-muted);
+    pointer-events: none;
+}
+.money-input-wrap input { padding-left: 46px; }
+
+/* ===== Nav buttons ===== */
+.wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color, #ececec);
+}
+.wizard-nav .btn { flex: 0 0 auto; }
+.wizard-nav-spacer { flex: 1; }
+
+/* ===== Responsive ===== */
+@media (max-width: 760px) {
+    .job-form-grid { grid-template-columns: 1fr; gap: 12px; }
+    .span-2 { grid-column: span 1; }
+    .cost-readonly { font-size: 16px; }
+    .page-header { flex-direction: column; align-items: stretch; gap: 10px; }
+    .page-header .btn { align-self: flex-start; }
+    .wizard-step-label { display: none; }
+    .wizard-step.active .wizard-step-label {
+        display: block;
+        position: absolute;
+        margin-top: 36px;
+        font-size: 11px;
+    }
+    .wizard-step { position: relative; }
+    .wizard-progress { margin-bottom: 28px; }
+    .wizard-nav .btn { flex: 1; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <div>
         <h1 class="page-title">{{ 'Edit' if job else 'New' }} Service Job</h1>
         <p class="page-subtitle">{{ job.job_number if job else 'Create a new service job' }}</p>
     </div>
-    <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">Back to Jobs</a>
+    <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Jobs</a>
 </div>
 
 <div class="card">
     <div class="card-body">
-        <form method="POST">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Customer Name *</label>
-                    <input type="text" name="customer_name" class="form-control" value="{{ job.customer_name if job else '' }}" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Phone Number</label>
-                    <input type="text" name="customer_phone" class="form-control" value="{{ job.customer_phone if job else '' }}">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Service Category</label>
-                    <select name="category_id" id="category_id" class="form-select">
-                        <option value="">Select category first</option>
-                        {% for cat in categories %}
-                        <option value="{{ cat.id }}" {% if job and job.service_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Service Type *</label>
-                    <select name="service_type_id" id="service_type_id" class="form-select" required>
-                        <option value="">Select category first</option>
-                        {% for st in service_types %}
-                        <option value="{{ st.id }}" data-cat="{{ st.category_id }}" data-max="{{ st.max_charge }}" {% if job and job.service_type_id == st.id %}selected{% endif %}>
-                            {{ st.name }} (max KSh {{ st.max_charge|format_currency if st.max_charge > 0 else 'No limit' }})
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label">Item / Device *</label>
-                    <input type="text" name="item_description" class="form-control" value="{{ job.item_description if job else '' }}" required>
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label">Issue Description</label>
-                    <textarea name="issue_description" class="form-control" rows="3">{{ job.issue_description if job else '' }}</textarea>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Service Charge (KSh)</label>
-                    <input type="number" name="service_charge" id="service_charge" class="form-control" step="0.01" value="{{ job.service_charge if job else 0 }}">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Parts Cost (KSh)</label>
-                    <input type="number" name="parts_cost" id="parts_cost" class="form-control" step="0.01" value="{{ job.parts_cost if job else 0 }}">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Total Cost</label>
-                    <input type="text" id="total_cost" class="form-control" readonly disabled>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Amount Paid</label>
-                    <input type="number" name="amount_paid" id="amount_paid" class="form-control" step="0.01" value="{{ job.amount_paid if job else 0 }}">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Balance Due</label>
-                    <input type="text" id="balance" class="form-control" readonly disabled>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Expected Completion Date</label>
-                    <input type="date" name="expected_completion_date" class="form-control" value="{{ job.expected_completion_date.strftime('%Y-%m-%d') if job and job.expected_completion_date else '' }}">
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label">Notes (visible to customer)</label>
-                    <textarea name="notes" class="form-control" rows="2">{{ job.notes if job else '' }}</textarea>
-                </div>
-                {% if current_user.role in ['owner', 'admin'] %}
-                <div class="col-md-12">
-                    <label class="form-label">Technician Notes (internal)</label>
-                    <textarea name="technician_notes" class="form-control" rows="2">{{ job.technician_notes if job else '' }}</textarea>
-                </div>
-                {% endif %}
+
+        <!-- Progress tracker -->
+        <div class="wizard-progress">
+            <div class="wizard-step active" data-step="1">
+                <div class="wizard-step-circle">1</div>
+                <div class="wizard-step-label">Customer</div>
             </div>
-            <div class="mt-4">
-                <button type="submit" class="btn btn-primary">Save Job</button>
+            <div class="wizard-connector"></div>
+            <div class="wizard-step" data-step="2">
+                <div class="wizard-step-circle">2</div>
+                <div class="wizard-step-label">Job details</div>
+            </div>
+            <div class="wizard-connector"></div>
+            <div class="wizard-step" data-step="3">
+                <div class="wizard-step-circle">3</div>
+                <div class="wizard-step-label">Costs &amp; notes</div>
+            </div>
+        </div>
+
+        <form method="POST" id="jobForm">
+
+            <!-- ===== STEP 1: Customer ===== -->
+            <div class="wizard-panel active" data-panel="1">
+                <p class="wizard-panel-intro">Step 1 of 3 — who is this job for?</p>
+                <div class="job-form-grid">
+                    <div class="form-group span-2">
+                        <label class="form-label">Customer Name *</label>
+                        <input type="text" name="customer_name" class="form-control" value="{{ job.customer_name if job else '' }}" required>
+                    </div>
+                    <div class="form-group span-2">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" name="customer_phone" class="form-control" value="{{ job.customer_phone if job else '' }}" placeholder="07XX XXX XXX">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STEP 2: Job details ===== -->
+            <div class="wizard-panel" data-panel="2">
+                <p class="wizard-panel-intro">Step 2 of 3 — what's being worked on?</p>
+                <div class="job-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Service Category</label>
+                        <select name="category_id" id="category_id" class="form-select">
+                            <option value="">Select category first</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}" {% if job and job.service_category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Service Type *</label>
+                        <select name="service_type_id" id="service_type_id" class="form-select" required>
+                            <option value="">Select category first</option>
+                            {% for st in service_types %}
+                            <option value="{{ st.id }}" data-cat="{{ st.category_id }}" data-max="{{ st.max_charge }}" {% if job and job.service_type_id == st.id %}selected{% endif %}>
+                                {{ st.name }} (max KSh {{ st.max_charge|format_currency if st.max_charge > 0 else 'No limit' }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group span-2">
+                        <label class="form-label">Item / Device *</label>
+                        <input type="text" name="item_description" class="form-control" value="{{ job.item_description if job else '' }}" required placeholder="e.g. Samsung A14, Hisense 43&quot; TV">
+                    </div>
+                    <div class="form-group span-2">
+                        <label class="form-label">Issue Description</label>
+                        <textarea name="issue_description" class="form-control" rows="2">{{ job.issue_description if job else '' }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Expected Completion Date</label>
+                        <input type="date" name="expected_completion_date" class="form-control" value="{{ job.expected_completion_date.strftime('%Y-%m-%d') if job and job.expected_completion_date else '' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== STEP 3: Costs & Notes ===== -->
+            <div class="wizard-panel" data-panel="3">
+                <p class="wizard-panel-intro">Step 3 of 3 — costs, payment and notes</p>
+                <div class="job-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Service Charge</label>
+                        <div class="money-input-wrap">
+                            <span class="currency-prefix">KSh</span>
+                            <input type="number" name="service_charge" id="service_charge" class="form-control" step="0.01" value="{{ job.service_charge if job else 0 }}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Parts Cost</label>
+                        <div class="money-input-wrap">
+                            <span class="currency-prefix">KSh</span>
+                            <input type="number" name="parts_cost" id="parts_cost" class="form-control" step="0.01" value="{{ job.parts_cost if job else 0 }}">
+                        </div>
+                    </div>
+                    <div class="form-group span-2">
+                        <label class="form-label">Amount Paid</label>
+                        <div class="money-input-wrap">
+                            <span class="currency-prefix">KSh</span>
+                            <input type="number" name="amount_paid" id="amount_paid" class="form-control" step="0.01" value="{{ job.amount_paid if job else 0 }}">
+                        </div>
+                    </div>
+                    <div class="form-group span-2">
+                        <div class="cost-summary">
+                            <div class="form-group">
+                                <label class="form-label">Total Cost</label>
+                                <input type="text" id="total_cost" class="form-control cost-readonly" readonly disabled>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Balance Due</label>
+                                <input type="text" id="balance" class="form-control cost-readonly" readonly disabled>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group span-2">
+                        <label class="form-label">Notes (visible to customer)</label>
+                        <textarea name="notes" class="form-control" rows="2">{{ job.notes if job else '' }}</textarea>
+                    </div>
+                    {% if current_user.role in ['owner', 'admin'] %}
+                    <div class="form-group span-2">
+                        <label class="form-label">Technician Notes (internal)</label>
+                        <textarea name="technician_notes" class="form-control" rows="2">{{ job.technician_notes if job else '' }}</textarea>
+                        <div class="field-hint"><i class="fas fa-eye-slash"></i> Only visible to staff</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- ===== Navigation ===== -->
+            <div class="wizard-nav">
+                <button type="button" class="btn btn-secondary" id="prevBtn" style="visibility:hidden;"><i class="fas fa-arrow-left"></i> Back</button>
+                <div class="wizard-nav-spacer"></div>
                 <a href="{{ url_for('services.list_services') }}" class="btn btn-secondary">Cancel</a>
+                <button type="button" class="btn btn-primary" id="nextBtn">Next <i class="fas fa-arrow-right"></i></button>
+                <button type="submit" class="btn btn-primary" id="saveBtn" style="display:none;"><i class="fas fa-floppy-disk"></i> Save Job</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+    const TOTAL_STEPS = 3;
+    let currentStep = 1;
+
+    const steps = document.querySelectorAll('.wizard-step');
+    const panels = document.querySelectorAll('.wizard-panel');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    function requiredFieldsValid(panel) {
+        const fields = panel.querySelectorAll('[required]');
+        for (const f of fields) {
+            if (!f.value || !f.value.trim()) {
+                f.reportValidity();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function goToStep(step) {
+        steps.forEach(s => {
+            const n = parseInt(s.dataset.step);
+            s.classList.remove('active', 'done');
+            if (n < step) s.classList.add('done');
+            else if (n === step) s.classList.add('active');
+        });
+        panels.forEach(p => {
+            p.classList.toggle('active', parseInt(p.dataset.panel) === step);
+        });
+
+        prevBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+        nextBtn.style.display = step === TOTAL_STEPS ? 'none' : '';
+        saveBtn.style.display = step === TOTAL_STEPS ? '' : 'none';
+
+        currentStep = step;
+        window.scrollTo({ top: document.querySelector('.card').offsetTop - 16, behavior: 'smooth' });
+    }
+
+    nextBtn.addEventListener('click', () => {
+        const currentPanel = document.querySelector('.wizard-panel[data-panel="' + currentStep + '"]');
+        if (!requiredFieldsValid(currentPanel)) return;
+        if (currentStep < TOTAL_STEPS) goToStep(currentStep + 1);
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) goToStep(currentStep - 1);
+    });
+
+    // Allow clicking on completed/active step circles to jump back
+    steps.forEach(s => {
+        s.addEventListener('click', () => {
+            const target = parseInt(s.dataset.step);
+            if (target < currentStep) goToStep(target);
+        });
+        s.style.cursor = 'pointer';
+    });
+
+    // ===== Cost calculation =====
     const catSelect = document.getElementById('category_id');
     const typeSelect = document.getElementById('service_type_id');
     const serviceCharge = document.getElementById('service_charge');
@@ -108,9 +364,13 @@
         let parts = parseFloat(partsCost.value) || 0;
         let total = charge + parts;
         totalSpan.value = total.toFixed(2);
+
         let paid = parseFloat(amountPaid.value) || 0;
         let balance = total - paid;
         balanceSpan.value = balance.toFixed(2);
+
+        balanceSpan.classList.remove('balance-due', 'balance-clear');
+        balanceSpan.classList.add(balance > 0 ? 'balance-due' : 'balance-clear');
     }
 
     serviceCharge.addEventListener('input', updateTotals);
@@ -126,14 +386,12 @@
             const optCat = opt.getAttribute('data-cat');
             opt.style.display = (catId === optCat) ? '' : 'none';
         }
-        // Select first visible option
         for (let opt of typeSelect.options) {
             if (opt.value !== "" && opt.style.display !== 'none') {
                 opt.selected = true;
                 break;
             }
         }
-        // Update max charge warning
         const selected = typeSelect.options[typeSelect.selectedIndex];
         const maxCharge = parseFloat(selected?.getAttribute('data-max') || 0);
         if (maxCharge > 0) {
@@ -163,5 +421,10 @@
         }
     });
     filterTypes();
+
+    // If editing a job, jump straight to whichever step has the most "weight" — keep step 1 default for new jobs
+    {% if job %}
+    goToStep(1);
+    {% endif %}
 </script>
 {% endblock %}

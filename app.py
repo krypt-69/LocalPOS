@@ -45,14 +45,10 @@ def format_currency_filter(amount):
     except (TypeError, ValueError):
         return "KSh 0.00"
 
-from routes import auth, dashboard, stock_in, stock_out, stock_management, debtors, reports, categories
-from routes import users
+# Import blueprints
+from routes import auth, dashboard, stock_in, stock_out, stock_management, debtors, reports, categories, services, users, activity
 
-from routes import services
-from routes import users
-from routes import activity
-
-app.register_blueprint(activity.activity_bp)
+# Register blueprints
 app.register_blueprint(auth.auth_bp)
 app.register_blueprint(dashboard.dashboard_bp)
 app.register_blueprint(stock_in.stock_in_bp)
@@ -63,8 +59,10 @@ app.register_blueprint(reports.reports_bp)
 app.register_blueprint(categories.categories_bp)
 app.register_blueprint(services.services_bp)
 app.register_blueprint(users.users_bp)
+app.register_blueprint(activity.activity_bp)
 
-
+# Home route
+@app.route('/')
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.dashboard_home'))

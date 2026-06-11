@@ -14,7 +14,15 @@ def stock_out_page():
     categories = Category.query.all()
     products = Product.query.filter(Product.current_stock > 0, Product.is_active == True).order_by(Product.name).all()
     cart = session.get('sale_cart', [])
-    return render_template('stock_out.html', categories=categories, products=products, cart=cart, format_currency=format_currency)
+    subtotal = sum(item['quantity'] * item['price'] for item in cart)
+    total = subtotal
+    return render_template('stock_out.html', 
+                         categories=categories, 
+                         products=products, 
+                         cart=cart, 
+                         format_currency=format_currency,
+                         subtotal=subtotal,
+                         total=total)
 
 @stock_out_bp.route('/add-to-cart', methods=['POST'])
 @login_required
@@ -95,19 +103,6 @@ def checkout():
         discount_amount = subtotal * (discount_value / 100)
     elif discount_type == 'fixed':
         discount_amount = discount_value
-    # Worker discount limit check by category
-    if current_user.role == 'worker' and discount_amount > 0:
-        for item in cart:
-            product = Product.query.get(item['product_id'])
-            category = Category.query.get(product.category_id)
-            max_pct = category.max_discount_percent if category else 0
-            if max_pct > 0:
-                item_sub = item['quantity'] * item['price']
-                item_disc = (item_sub / subtotal) * discount_amount
-                item_pct = (item_disc / item_sub) * 100 if item_sub > 0 else 0
-                if item_pct > max_pct:
-                    flash(f'Discount on {product.name} exceeds allowed {max_pct}% for category {category.name}', 'danger')
-                    return redirect(url_for('stock_out.stock_out_page'))
     else:
         discount_amount = 0
     final_amount = subtotal - discount_amount
@@ -157,7 +152,6 @@ def checkout():
             )
             db.session.add(debtor)
         db.session.commit()
-        # Log activity
         log_activity('sale', f"Sale {receipt_number}: {len(cart)} items, total {final_amount:,.2f}, payment: {payment_method}", 'sale', sale.id)
         if discount_amount > 0:
             log_activity('discount', f"Discount {discount_value}{'%' if discount_type=='percentage' else 'fixed'} applied on sale {receipt_number}", 'sale', sale.id)

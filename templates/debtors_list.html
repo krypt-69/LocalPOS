@@ -4,35 +4,457 @@
 
 {% block extra_css %}
 <style>
-.debtors-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
-.filter-row { display: grid; grid-template-columns: 1fr 200px auto auto; gap: 12px; align-items: end; }
-.customer-name { font-weight: 600; }
-.customer-phone { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-.balance-cell { font-weight: 700; color: var(--danger); font-variant-numeric: tabular-nums; }
-.amount-cell { font-variant-numeric: tabular-nums; }
-.date-cell { font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
-.status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600; }
-.status-overdue   { background: var(--danger-soft); color: var(--danger); }
+/* ===== Header / Stats ===== */
+.debtors-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 22px;
+}
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #eee);
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+.stat-icon {
+    flex-shrink: 0;
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px;
+}
+.stat-icon.red    { background: var(--danger-soft);  color: var(--danger); }
+.stat-icon.blue   { background: var(--info-soft);    color: var(--info); }
+.stat-icon.orange { background: var(--warning-soft); color: var(--warning); }
+.stat-info { min-width: 0; }
+.stat-label { font-size: 12.5px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.stat-value { font-size: 24px; font-weight: 800; line-height: 1.25; margin-top: 2px; }
+.stat-sub { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+
+/* ===== Filter / Toolbar Card ===== */
+.toolbar-card { margin-bottom: 18px; }
+.toolbar-card .card-body { padding: 16px 18px; }
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 12px;
+}
+.filter-form .form-group { margin-bottom: 0; }
+.search-field { flex: 1 1 240px; min-width: 200px; }
+.search-field .input-icon-wrap { position: relative; }
+.search-field input { padding-left: 36px; }
+.search-field .fa-magnifying-glass {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 13px; pointer-events: none;
+}
+.status-field { flex: 0 0 180px; }
+.filter-actions { display: flex; gap: 8px; align-items: end; }
+.filter-actions .btn { white-space: nowrap; }
+
+/* View toggle (cards / table) */
+.view-toggle {
+    display: inline-flex;
+    border: 1px solid var(--border-color, #e2e2e2);
+    border-radius: 10px;
+    overflow: hidden;
+    flex: 0 0 auto;
+}
+.view-toggle .toggle-btn {
+    border: none;
+    background: transparent;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: background .15s ease, color .15s ease;
+}
+.view-toggle .toggle-btn + .toggle-btn { border-left: 1px solid var(--border-color, #e2e2e2); }
+.view-toggle .toggle-btn.active { background: var(--primary, #4f46e5); color: #fff; }
+.view-toggle .toggle-btn:not(.active):hover { background: var(--hover-bg, rgba(0,0,0,0.04)); }
+
+/* ===== Status badges ===== */
+.status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 11px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .03em;
+}
+.status-badge i { font-size: 9px; }
+.status-overdue   { background: var(--danger-soft);  color: var(--danger); }
 .status-due-soon  { background: var(--warning-soft); color: var(--warning); }
 .status-pending   { background: var(--info-soft);    color: var(--info); }
 .status-paid      { background: var(--success-soft); color: var(--success); }
-.empty-state { text-align: center; padding: 52px 20px; color: var(--text-muted); }
-.empty-state-icon { width: 56px; height: 56px; border-radius: 50%; background: var(--success-soft); color: var(--success); display: inline-flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 12px; }
-@media (max-width: 900px) { .debtors-stats { grid-template-columns: 1fr 1fr; } .filter-row { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 560px) { .debtors-stats { grid-template-columns: 1fr; } .filter-row { grid-template-columns: 1fr; } .col-hide-sm { display: none; } }
+.status-default   { background: var(--hover-bg, #eee); color: var(--text-secondary); }
+
+/* ===== Empty state ===== */
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+.empty-state-icon {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--success-soft); color: var(--success);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 14px;
+}
+.empty-state-title { font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+.empty-state-sub { font-size: 13.5px; }
+
+/* =========================================================
+   PROFILE / CARD VIEW (default — vertical "profile" cards)
+   ========================================================= */
+.debtors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+.debtor-card {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #ececec);
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.debtor-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.07); }
+
+.debtor-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--border-color, #f0f0f0);
+}
+.debtor-avatar {
+    flex-shrink: 0;
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary, #4f46e5), var(--primary-light, #818cf8));
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px;
+    text-transform: uppercase;
+}
+.debtor-identity { min-width: 0; flex: 1; }
+.debtor-name {
+    font-weight: 700; font-size: 15px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.debtor-phone {
+    font-size: 12.5px; color: var(--text-muted);
+    margin-top: 2px;
+    display: flex; align-items: center; gap: 5px;
+}
+.debtor-phone i { font-size: 10px; }
+
+.debtor-card-balance {
+    padding: 14px 18px;
+    text-align: center;
+    background: var(--danger-soft);
+}
+.debtor-card-balance .balance-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--danger); opacity: .8;
+}
+.debtor-card-balance .balance-amount {
+    font-size: 26px; font-weight: 800; color: var(--danger);
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+}
+
+.debtor-card-body {
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 14px;
+    flex: 1;
+}
+.debtor-stat-label {
+    font-size: 11px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: .04em; font-weight: 600;
+}
+.debtor-stat-value {
+    font-size: 14px; font-weight: 700;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}
+.debtor-stat-value.paid { color: var(--success); }
+.debtor-stat-value.muted { color: var(--text-muted); font-weight: 500; font-size: 13px; }
+
+.debtor-card-footer {
+    padding: 12px 18px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.debtor-card-footer .status-badge { flex-shrink: 0; }
+.debtor-card-footer .btn { flex-shrink: 0; }
+
+/* =========================================================
+   TABLE VIEW (horizontal)
+   ========================================================= */
+.table-view-wrap { display: none; }
+.table-view-wrap.active { display: block; }
+.cards-view-wrap { display: none; }
+.cards-view-wrap.active { display: block; }
+
+.customer-name { font-weight: 600; }
+.customer-phone { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.customer-cell { display: flex; align-items: center; gap: 10px; }
+.table-avatar {
+    flex-shrink: 0;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary, #4f46e5), var(--primary-light, #818cf8));
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    text-transform: uppercase;
+}
+.balance-cell { font-weight: 700; color: var(--danger); font-variant-numeric: tabular-nums; }
+.amount-cell { font-variant-numeric: tabular-nums; }
+.date-cell { font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
+
+/* ===== Responsive ===== */
+@media (max-width: 900px) {
+    .debtors-stats { grid-template-columns: 1fr 1fr; }
+    .status-field { flex: 1 1 140px; }
+}
+@media (max-width: 560px) {
+    .debtors-stats { grid-template-columns: 1fr; }
+    .filter-form { flex-direction: column; align-items: stretch; }
+    .search-field, .status-field { flex: 1 1 auto; width: 100%; }
+    .filter-actions { width: 100%; }
+    .filter-actions .btn { flex: 1; }
+    .view-toggle { width: 100%; }
+    .view-toggle .toggle-btn { flex: 1; justify-content: center; }
+    .col-hide-sm { display: none; }
+    .debtors-grid { grid-template-columns: 1fr; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header"><div><h1 class="page-title">Debtors</h1><p class="page-subtitle">Track and manage outstanding customer balances</p></div></div>
-
-<div class="debtors-stats">
-    <div class="stat-card"><div class="stat-icon red"><i class="fas fa-scale-unbalanced"></i></div><div class="stat-info"><div class="stat-label">Total Outstanding</div><div class="stat-value">{{ total_debt|format_currency }}</div><div class="stat-sub">Across all debtors</div></div></div>
-    <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-users"></i></div><div class="stat-info"><div class="stat-label">Active Debtors</div><div class="stat-value">{{ total_debtors }}</div><div class="stat-sub">With open balances</div></div></div>
-    <div class="stat-card"><div class="stat-icon orange"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-label">Overdue Accounts</div><div class="stat-value">{{ overdue_count }}</div><div class="stat-sub">Past due date</div></div></div>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Debtors</h1>
+        <p class="page-subtitle">Track and manage outstanding customer balances</p>
+    </div>
 </div>
 
-<div class="card mb-3"><div class="card-body"><form method="GET"><div class="filter-row"><div class="form-group mb-0"><label class="form-label">Search</label><div style="position:relative;"><i class="fas fa-magnifying-glass" style="position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--text-muted);"></i><input type="text" name="search" class="form-control" value="{{ search }}" placeholder="Name or phone…" style="padding-left:34px;"></div></div><div class="form-group mb-0"><label class="form-label">Status</label><select name="status" class="form-control"><option value="">All Active</option><option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option><option value="due_soon" {% if status_filter == 'due_soon' %}selected{% endif %}>Due Soon (3 days)</option><option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option></select></div><div class="filter-actions" style="display:flex; gap:10px;"><button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button><a href="{{ url_for('debtors.debtors_list') }}" class="btn btn-secondary"><i class="fas fa-rotate-left"></i> Reset</a></div></div></form></div></div>
+<div class="debtors-stats">
+    <div class="stat-card">
+        <div class="stat-icon red"><i class="fas fa-scale-unbalanced"></i></div>
+        <div class="stat-info">
+            <div class="stat-label">Total Outstanding</div>
+            <div class="stat-value">{{ total_debt|format_currency }}</div>
+            <div class="stat-sub">Across all debtors</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+        <div class="stat-info">
+            <div class="stat-label">Active Debtors</div>
+            <div class="stat-value">{{ total_debtors }}</div>
+            <div class="stat-sub">With open balances</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+        <div class="stat-info">
+            <div class="stat-label">Overdue Accounts</div>
+            <div class="stat-value">{{ overdue_count }}</div>
+            <div class="stat-sub">Past due date</div>
+        </div>
+    </div>
+</div>
 
-<div class="card">{% if debtors %}<div class="table-wrapper"><table class="table"><thead><tr><th>Customer</th><th class="col-hide-sm">Sale Date</th><th>Total Owed</th><th class="col-hide-sm">Paid</th><th>Balance</th><th class="col-hide-sm">Age</th><th class="col-hide-sm">Due Date</th><th>Status</th><th>Action</th></tr></thead><tbody>{% for debtor in debtors %}<tr><td><div class="customer-name">{{ debtor.customer_name }}</div>{% if debtor.customer_phone %}<div class="customer-phone"><i class="fas fa-phone"></i> {{ debtor.customer_phone }}</div>{% endif %}</td><td class="date-cell col-hide-sm">{{ debtor.created_at.strftime('%d %b %Y') }}</td><td class="amount-cell">{{ debtor.total_owed|format_currency }}</td><td class="amount-cell col-hide-sm" style="color:var(--success);">{{ debtor.amount_paid|format_currency }}</td><td class="balance-cell">{{ debtor.balance|format_currency }}</td><td class="col-hide-sm">{{ debtor.aging_category }}</td><td class="date-cell col-hide-sm">{% if debtor.due_date %}{{ debtor.due_date.strftime('%d %b %Y') }}{% else %}<span class="text-muted">Not set</span>{% endif %}</td><td><span class="status-badge {% if debtor.status_info.color == 'danger' %}status-overdue{% elif debtor.status_info.color == 'warning' %}status-due-soon{% elif debtor.status_info.color == 'info' %}status-pending{% elif debtor.status_info.color == 'success' %}status-paid{% else %}status-default{% endif %}">{{ debtor.status_info.text }}</span></td><td><a href="{{ url_for('debtors.debtor_profile', debtor_id=debtor.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> View</a></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty-state"><div class="empty-state-icon"><i class="fas fa-circle-check"></i></div><div class="empty-state-title">All clear — no outstanding debts</div><div class="empty-state-sub">Every customer account is fully settled.</div></div>{% endif %}</div>
+<div class="card toolbar-card">
+    <div class="card-body">
+        <form method="GET" class="filter-form">
+            <div class="form-group search-field">
+                <label class="form-label">Search</label>
+                <div class="input-icon-wrap">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <input type="text" name="search" class="form-control" value="{{ search }}" placeholder="Name or phone…">
+                </div>
+            </div>
+            <div class="form-group status-field">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="">All Active</option>
+                    <option value="overdue"  {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                    <option value="due_soon" {% if status_filter == 'due_soon' %}selected{% endif %}>Due Soon (3 days)</option>
+                    <option value="pending"  {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                </select>
+            </div>
+            <div class="filter-actions">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                <a href="{{ url_for('debtors.debtors_list') }}" class="btn btn-secondary"><i class="fas fa-rotate-left"></i> Reset</a>
+            </div>
+            <div class="view-toggle" role="group" aria-label="View mode">
+                <button type="button" class="toggle-btn active" data-view="cards" onclick="setDebtorsView('cards')">
+                    <i class="fas fa-id-card"></i> Profiles
+                </button>
+                <button type="button" class="toggle-btn" data-view="table" onclick="setDebtorsView('table')">
+                    <i class="fas fa-table-list"></i> Table
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if debtors %}
+
+<!-- ============ PROFILE / CARD VIEW (default) ============ -->
+<div class="cards-view-wrap active" id="cardsView">
+    <div class="debtors-grid">
+        {% for debtor in debtors %}
+        <div class="debtor-card">
+            <div class="debtor-card-top">
+                <div class="debtor-avatar">{{ debtor.customer_name[:1] }}</div>
+                <div class="debtor-identity">
+                    <div class="debtor-name">{{ debtor.customer_name }}</div>
+                    {% if debtor.customer_phone %}
+                    <div class="debtor-phone"><i class="fas fa-phone"></i> {{ debtor.customer_phone }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="debtor-card-balance">
+                <div class="balance-label">Balance Due</div>
+                <div class="balance-amount">{{ debtor.balance|format_currency }}</div>
+            </div>
+
+            <div class="debtor-card-body">
+                <div>
+                    <div class="debtor-stat-label">Total Owed</div>
+                    <div class="debtor-stat-value">{{ debtor.total_owed|format_currency }}</div>
+                </div>
+                <div>
+                    <div class="debtor-stat-label">Paid</div>
+                    <div class="debtor-stat-value paid">{{ debtor.amount_paid|format_currency }}</div>
+                </div>
+                <div>
+                    <div class="debtor-stat-label">Sale Date</div>
+                    <div class="debtor-stat-value muted">{{ debtor.created_at.strftime('%d %b %Y') }}</div>
+                </div>
+                <div>
+                    <div class="debtor-stat-label">Due Date</div>
+                    <div class="debtor-stat-value muted">
+                        {% if debtor.due_date %}{{ debtor.due_date.strftime('%d %b %Y') }}{% else %}Not set{% endif %}
+                    </div>
+                </div>
+                <div>
+                    <div class="debtor-stat-label">Aging</div>
+                    <div class="debtor-stat-value muted">{{ debtor.aging_category }}</div>
+                </div>
+            </div>
+
+            <div class="debtor-card-footer">
+                <span class="status-badge {% if debtor.status_info.color == 'danger' %}status-overdue{% elif debtor.status_info.color == 'warning' %}status-due-soon{% elif debtor.status_info.color == 'info' %}status-pending{% elif debtor.status_info.color == 'success' %}status-paid{% else %}status-default{% endif %}">
+                    {{ debtor.status_info.text }}
+                </span>
+                <a href="{{ url_for('debtors.debtor_profile', debtor_id=debtor.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> View</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ============ TABLE VIEW (horizontal) ============ -->
+<div class="table-view-wrap" id="tableView">
+    <div class="card">
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th class="col-hide-sm">Sale Date</th>
+                        <th>Total Owed</th>
+                        <th class="col-hide-sm">Paid</th>
+                        <th>Balance</th>
+                        <th class="col-hide-sm">Age</th>
+                        <th class="col-hide-sm">Due Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for debtor in debtors %}
+                    <tr>
+                        <td>
+                            <div class="customer-cell">
+                                <div class="table-avatar">{{ debtor.customer_name[:1] }}</div>
+                                <div>
+                                    <div class="customer-name">{{ debtor.customer_name }}</div>
+                                    {% if debtor.customer_phone %}<div class="customer-phone"><i class="fas fa-phone"></i> {{ debtor.customer_phone }}</div>{% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="date-cell col-hide-sm">{{ debtor.created_at.strftime('%d %b %Y') }}</td>
+                        <td class="amount-cell">{{ debtor.total_owed|format_currency }}</td>
+                        <td class="amount-cell col-hide-sm" style="color:var(--success);">{{ debtor.amount_paid|format_currency }}</td>
+                        <td class="balance-cell">{{ debtor.balance|format_currency }}</td>
+                        <td class="col-hide-sm">{{ debtor.aging_category }}</td>
+                        <td class="date-cell col-hide-sm">
+                            {% if debtor.due_date %}{{ debtor.due_date.strftime('%d %b %Y') }}{% else %}<span class="text-muted">Not set</span>{% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge {% if debtor.status_info.color == 'danger' %}status-overdue{% elif debtor.status_info.color == 'warning' %}status-due-soon{% elif debtor.status_info.color == 'info' %}status-pending{% elif debtor.status_info.color == 'success' %}status-paid{% else %}status-default{% endif %}">
+                                {{ debtor.status_info.text }}
+                            </span>
+                        </td>
+                        <td><a href="{{ url_for('debtors.debtor_profile', debtor_id=debtor.id) }}" class="btn btn-sm btn-secondary"><i class="fas fa-eye"></i> View</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fas fa-circle-check"></i></div>
+        <div class="empty-state-title">All clear — no outstanding debts</div>
+        <div class="empty-state-sub">Every customer account is fully settled.</div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function setDebtorsView(view) {
+    var cards = document.getElementById('cardsView');
+    var table = document.getElementById('tableView');
+    var btns = document.querySelectorAll('.view-toggle .toggle-btn');
+
+    btns.forEach(function (b) { b.classList.toggle('active', b.dataset.view === view); });
+
+    if (view === 'table') {
+        cards.classList.remove('active');
+        table.classList.add('active');
+    } else {
+        table.classList.remove('active');
+        cards.classList.add('active');
+    }
+    try { localStorage.setItem('debtorsView', view); } catch (e) {}
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var saved = null;
+    try { saved = localStorage.getItem('debtorsView'); } catch (e) {}
+    if (saved === 'table') setDebtorsView('table');
+});
+</script>
 {% endblock %}

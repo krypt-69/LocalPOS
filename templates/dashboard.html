@@ -4,30 +4,28 @@
 
 {% block extra_css %}
 <style>
-/* Dashboard specific overrides – uses base.css variables */
 .dashboard-date {
     font-size: 13px;
     color: var(--text-muted);
     margin-top: 4px;
 }
 
+/* ===== Stat cards ===== */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin-bottom: 24px;
+    gap: 14px;
+    margin-bottom: 22px;
 }
-
 .stat-card {
     background: var(--bg-surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    padding: 18px 20px;
+    padding: 16px 18px;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     transition: all 0.2s;
-    cursor: pointer;
     text-decoration: none;
 }
 .stat-card:hover {
@@ -36,35 +34,35 @@
     box-shadow: var(--shadow-md);
 }
 .stat-icon {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: var(--radius-md);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 17px;
     flex-shrink: 0;
 }
-.stat-icon.blue   { background: var(--accent-soft); color: var(--accent); }
+.stat-icon.blue   { background: var(--accent-soft);  color: var(--accent); }
 .stat-icon.green  { background: var(--success-soft); color: var(--success); }
 .stat-icon.orange { background: var(--warning-soft); color: var(--warning); }
-.stat-icon.red    { background: var(--danger-soft); color: var(--danger); }
+.stat-icon.red    { background: var(--danger-soft);  color: var(--danger); }
 
-.stat-info { flex: 1; }
+.stat-info { flex: 1; min-width: 0; }
 .stat-value {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     color: var(--text-primary);
-    line-height: 1.2;
+    line-height: 1.25;
     font-variant-numeric: tabular-nums;
 }
 .stat-label {
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.3px;
     color: var(--text-muted);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
 .stat-sub {
     font-size: 11px;
@@ -72,24 +70,64 @@
     margin-top: 2px;
 }
 
-/* Charts row */
+/* ===== Friendly summary banner ===== */
+.summary-banner {
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 20px;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+.summary-banner-icon {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.summary-banner-text { font-size: 14px; line-height: 1.6; color: var(--text-primary); }
+.summary-banner-text strong { font-weight: 700; }
+
+/* ===== Charts row ===== */
 .charts-grid {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 18px;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
 }
+.chart-card-body { padding: 18px 20px; }
+.chart-explainer {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 14px;
+}
+.chart-explainer strong { color: var(--text-primary); font-weight: 700; }
+
+.chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 12px;
+    font-size: 12.5px;
+    color: var(--text-secondary);
+}
+.chart-legend-item { display: flex; align-items: center; gap: 6px; }
+.chart-legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
 
 .payment-breakdown {
     display: flex;
     justify-content: space-around;
-    margin-top: 16px;
+    margin-top: 14px;
     padding-top: 12px;
     border-top: 1px solid var(--border);
 }
-.payment-breakdown-item {
-    text-align: center;
-}
+.payment-breakdown-item { text-align: center; }
 .payment-breakdown-label {
     font-size: 11px;
     font-weight: 600;
@@ -101,22 +139,18 @@
     font-weight: 700;
     color: var(--text-primary);
     font-variant-numeric: tabular-nums;
+    margin-top: 2px;
 }
 
-/* Bottom row */
+/* ===== Bottom row ===== */
 .bottom-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 18px;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
 }
 
-/* Product rank list */
-.product-rank-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
+.product-rank-list { display: flex; flex-direction: column; gap: 0; }
 .product-rank-item {
     display: flex;
     align-items: center;
@@ -126,38 +160,24 @@
 }
 .product-rank-item:last-child { border-bottom: none; }
 .rank-number {
-    width: 26px;
-    height: 26px;
+    width: 26px; height: 26px;
     background: var(--bg-surface-2);
     border: 1px solid var(--border);
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
     color: var(--text-secondary);
+    flex-shrink: 0;
 }
-.rank-number.top {
-    background: var(--accent-soft);
-    color: var(--accent);
-    border-color: var(--accent);
-}
-.rank-name {
-    flex: 1;
-    font-weight: 500;
-    color: var(--text-primary);
-}
+.rank-number.top { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.rank-name { flex: 1; font-weight: 500; color: var(--text-primary); min-width: 0; }
 .rank-sold {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
+    font-size: 12px; font-weight: 600; color: var(--text-secondary);
     background: var(--bg-surface-2);
-    padding: 2px 8px;
-    border-radius: 20px;
+    padding: 2px 8px; border-radius: 20px; flex-shrink: 0;
 }
 
-/* Recent sales table */
+/* ===== Recent sales table ===== */
 .receipt-badge {
     font-family: var(--font-mono);
     font-size: 11px;
@@ -167,17 +187,15 @@
     border-radius: 4px;
 }
 .method-badge {
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 20px;
+    font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px;
     text-transform: uppercase;
 }
 .method-cash   { background: var(--success-soft); color: var(--success); }
 .method-mpesa  { background: var(--info-soft);    color: var(--info); }
 .method-credit { background: var(--warning-soft); color: var(--warning); }
 
-/* Quick actions */
+/* ===== Quick actions ===== */
 .actions-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -197,36 +215,20 @@
     font-weight: 500;
     transition: all 0.2s;
 }
-.action-btn:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent);
-    box-shadow: var(--shadow-md);
-}
+.action-btn:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow-md); }
 .action-icon {
-    width: 48px;
-    height: 48px;
+    width: 48px; height: 48px;
     border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     font-size: 18px;
 }
-.action-icon.blue   { background: var(--accent-soft); color: var(--accent); }
+.action-icon.blue   { background: var(--accent-soft);  color: var(--accent); }
 .action-icon.green  { background: var(--success-soft); color: var(--success); }
 .action-icon.orange { background: var(--warning-soft); color: var(--warning); }
-.action-icon.red    { background: var(--danger-soft); color: var(--danger); }
+.action-icon.red    { background: var(--danger-soft);  color: var(--danger); }
 
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-muted);
-}
-.empty-state i {
-    font-size: 32px;
-    opacity: 0.4;
-    margin-bottom: 8px;
-    display: block;
-}
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+.empty-state i { font-size: 32px; opacity: 0.4; margin-bottom: 8px; display: block; }
 
 @media (max-width: 1000px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -236,6 +238,7 @@
 }
 @media (max-width: 550px) {
     .stats-grid { grid-template-columns: 1fr; }
+    .summary-banner { flex-direction: column; align-items: flex-start; }
 }
 </style>
 {% endblock %}
@@ -250,50 +253,79 @@
     </div>
 </div>
 
+<!-- Friendly daily summary -->
+<div class="summary-banner">
+    <div class="summary-banner-icon"><i class="fas fa-sun"></i></div>
+    <div class="summary-banner-text">
+        {% if today_transactions and today_transactions > 0 %}
+            So far today you've made <strong>{{ today_sales|format_currency }}</strong> from <strong>{{ today_transactions }}</strong> sale{{ 's' if today_transactions != 1 else '' }},
+            with about <strong>{{ today_profit|format_currency }}</strong> in profit.
+            {% if low_stock_count and low_stock_count > 0 %}
+            Just a heads up — <strong>{{ low_stock_count }}</strong> item{{ 's' if low_stock_count != 1 else '' }} {{ 'are' if low_stock_count != 1 else 'is' }} running low on stock.
+            {% endif %}
+        {% else %}
+            No sales recorded yet today. Once you make a sale, you'll see a quick summary here.
+        {% endif %}
+    </div>
+</div>
+
 <!-- Stat Cards -->
 <div class="stats-grid">
-    <div class="stat-card" onclick="location.href='{{ url_for('stock_out.stock_out_page') }}'">
+    <a href="{{ url_for('stock_out.stock_out_page') }}" class="stat-card">
         <div class="stat-icon blue"><i class="fas fa-chart-line"></i></div>
         <div class="stat-info">
             <div class="stat-label">Today's Sales</div>
             <div class="stat-value">{{ today_sales|format_currency }}</div>
             <div class="stat-sub">{{ today_transactions }} transaction(s)</div>
         </div>
-    </div>
-    <div class="stat-card" onclick="location.href='{{ url_for('reports.reports_page') }}'">
+    </a>
+    <a href="{{ url_for('reports.reports_page') }}" class="stat-card">
         <div class="stat-icon green"><i class="fas fa-circle-dollar-to-slot"></i></div>
         <div class="stat-info">
             <div class="stat-label">Today's Profit</div>
             <div class="stat-value">{{ today_profit|format_currency }}</div>
             <div class="stat-sub">Gross profit</div>
         </div>
-    </div>
-    <div class="stat-card" onclick="location.href='{{ url_for('stock_management.low_stock') }}'">
+    </a>
+    <a href="{{ url_for('stock_management.low_stock') }}" class="stat-card">
         <div class="stat-icon orange"><i class="fas fa-triangle-exclamation"></i></div>
         <div class="stat-info">
             <div class="stat-label">Low Stock Alerts</div>
             <div class="stat-value">{{ low_stock_count }}</div>
             <div class="stat-sub">{{ critical_count }} critical</div>
         </div>
-    </div>
-    <div class="stat-card" onclick="location.href='{{ url_for('debtors.debtors_list') }}'">
+    </a>
+    <a href="{{ url_for('debtors.debtors_list') }}" class="stat-card">
         <div class="stat-icon red"><i class="fas fa-users"></i></div>
         <div class="stat-info">
             <div class="stat-label">Outstanding Debt</div>
             <div class="stat-value">{{ total_debt|format_currency }}</div>
             <div class="stat-sub">{{ overdue_debts }} overdue</div>
         </div>
-    </div>
+    </a>
 </div>
 
 <!-- Charts Row -->
 <div class="charts-grid">
     <div class="card">
         <div class="card-header">
-            <span class="card-header-title">Payment Methods (Today)</span>
+            <span class="card-header-title">How customers paid today</span>
         </div>
-        <div class="card-body">
-            <canvas id="paymentChart" height="180"></canvas>
+        <div class="chart-card-body">
+            {% if cash_today or mpesa_today or credit_today %}
+            <p class="chart-explainer">
+                This shows the split between cash, M-Pesa, and credit sales for today. It helps you see at a glance how much money is in hand versus mobile money or still owed.
+            </p>
+            <div class="chart-legend">
+                <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#5DCAA5;"></span>Cash</span>
+                <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#85B7EB;"></span>M-Pesa</span>
+                <span class="chart-legend-item"><span class="chart-legend-dot" style="background:#FAC775;"></span>Credit</span>
+            </div>
+            <div style="position:relative; height:160px;">
+                <canvas id="paymentChart" role="img" aria-label="Pie chart showing today's sales split between cash, M-Pesa and credit">
+                    Cash: KSh {{ "%.0f"|format(cash_today) }}, M-Pesa: KSh {{ "%.0f"|format(mpesa_today) }}, Credit: KSh {{ "%.0f"|format(credit_today) }}
+                </canvas>
+            </div>
             <div class="payment-breakdown">
                 <div class="payment-breakdown-item">
                     <div class="payment-breakdown-label">Cash</div>
@@ -308,14 +340,28 @@
                     <div class="payment-breakdown-value">KSh {{ "%.0f"|format(credit_today) }}</div>
                 </div>
             </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-circle-dollar-to-slot"></i>
+                <span>No payments recorded yet today</span>
+            </div>
+            {% endif %}
         </div>
     </div>
+
     <div class="card">
         <div class="card-header">
-            <span class="card-header-title">Sales Trend (Last 7 Days)</span>
+            <span class="card-header-title">Sales over the last 7 days</span>
         </div>
-        <div class="card-body">
-            <canvas id="salesTrendChart" height="180"></canvas>
+        <div class="chart-card-body">
+            <p class="chart-explainer" id="trendExplainer">
+                This line shows your daily sales total for the past week, so you can spot your busiest and quietest days.
+            </p>
+            <div style="position:relative; height:200px;">
+                <canvas id="salesTrendChart" role="img" aria-label="Line chart of daily sales totals over the last 7 days">
+                    Daily sales totals for the last 7 days.
+                </canvas>
+            </div>
         </div>
     </div>
 </div>
@@ -329,6 +375,7 @@
         </div>
         <div class="card-body">
             {% if top_products %}
+            <p class="chart-explainer">Your best movers this week — useful for deciding what to restock first.</p>
             <div class="product-rank-list">
                 {% for product in top_products %}
                 <div class="product-rank-item">
@@ -396,59 +443,75 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 (function() {
-    function getCssVar(name) {
-        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    var hasPayments = ({{ cash_today|default(0) }} + {{ mpesa_today|default(0) }} + {{ credit_today|default(0) }}) > 0;
+
+    if (hasPayments) {
+        var ctx1 = document.getElementById('paymentChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                labels: ['Cash', 'M-Pesa', 'Credit'],
+                datasets: [{
+                    data: [{{ cash_today }}, {{ mpesa_today }}, {{ credit_today }}],
+                    backgroundColor: ['#5DCAA5', '#85B7EB', '#FAC775'],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { display: false } }
+            }
+        });
     }
-    // Payment Chart
-    const ctx1 = document.getElementById('paymentChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'doughnut',
-        data: {
-            labels: ['Cash', 'M-Pesa', 'Credit'],
-            datasets: [{
-                data: [{{ cash_today }}, {{ mpesa_today }}, {{ credit_today }}],
-                backgroundColor: [getCssVar('--success'), getCssVar('--info'), getCssVar('--warning')],
-                borderWidth: 0,
-                hoverOffset: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            cutout: '68%',
-            plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } }
-        }
-    });
-    // Sales Trend Chart
+
     fetch('/dashboard/api/sales-trend')
-        .then(r => r.json())
-        .then(data => {
-            const ctx2 = document.getElementById('salesTrendChart').getContext('2d');
-            const accent = getCssVar('--accent');
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var ctx2 = document.getElementById('salesTrendChart').getContext('2d');
+            var values = data.map(function(d) { return d.sales; });
+            var max = Math.max.apply(null, values);
+            var maxIdx = values.indexOf(max);
+            var bestDay = (data[maxIdx] && data[maxIdx].date) ? data[maxIdx].date : '';
+
             new Chart(ctx2, {
                 type: 'line',
                 data: {
-                    labels: data.map(d => d.date),
+                    labels: data.map(function(d) { return d.date; }),
                     datasets: [{
                         label: 'Sales (KSh)',
-                        data: data.map(d => d.sales),
-                        borderColor: accent,
-                        backgroundColor: accent + '20',
+                        data: values,
+                        borderColor: '#85B7EB',
+                        backgroundColor: 'rgba(133,183,235,0.15)',
                         borderWidth: 2,
                         pointRadius: 4,
-                        pointBackgroundColor: accent,
-                        tension: 0.3,
+                        pointBackgroundColor: '#378ADD',
+                        tension: 0.35,
                         fill: true
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { callback: v => 'KSh ' + v.toLocaleString() } } }
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { callback: function(v) { return 'KSh ' + Number(v).toLocaleString(); } }
+                        }
+                    }
                 }
             });
-        });
+
+            if (bestDay && max > 0) {
+                var explainer = document.getElementById('trendExplainer');
+                explainer.innerHTML = 'This line shows your daily sales total for the past week. Your best day was <strong>' + bestDay + '</strong> with ' +
+                    'KSh ' + Math.round(max).toLocaleString() + ' in sales.';
+            }
+        })
+        .catch(function() {});
 })();
 </script>
 {% endblock %}

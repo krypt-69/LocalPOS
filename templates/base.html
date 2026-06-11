@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>LocalPOS — {% block title %}Stock Management{% endblock %}</title>
+<link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LocalPOS">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +17,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
-
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LocalPOS">
+<link rel="apple-touch-icon" href="/static/icons/icon-192x192.png">
     <style>
         /* Design Tokens */
         :root {
@@ -396,7 +407,27 @@
     // Auto-dismiss flashes
     setTimeout(() => { document.querySelectorAll('.flash-msg').forEach(el => { el.style.opacity = '0'; setTimeout(() => el.remove(), 400); }); }, 5000);
 })();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/static/sw.js')
+      .then(reg => console.log('Service Worker registered', reg))
+      .catch(err => console.log('Service Worker registration failed', err));
+  });
+}
+
 </script>
 {% block extra_js %}{% endblock %}
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/static/sw.js")
+      .then(reg => console.log("Service Worker registered", reg))
+      .catch(err => console.log("Service Worker registration failed", err));
+  });
+}
+</script>
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 </body>
 </html>

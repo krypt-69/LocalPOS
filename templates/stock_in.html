@@ -4,8 +4,90 @@
 
 {% block extra_css %}
 <style>
-.stockin-grid { display: grid; grid-template-columns: 1fr 280px; gap: 18px; align-items: start; }
+
+/* ── Layout ──────────────────────────────────────────── */
+.si-page { display: flex; flex-direction: column; gap: 0; }
+
+.si-grid {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+    align-items: start;
+}
+
+/* ── Page Header ─────────────────────────────────────── */
+.si-page-header {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px 22px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.si-page-header-left { display: flex; align-items: center; gap: 14px; }
+
+.si-page-icon {
+    width: 46px; height: 46px;
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+}
+
+.si-page-header h1 { font-size: 19px; font-weight: 700; margin: 0 0 2px; }
+.si-page-header p  { font-size: 12.5px; color: var(--text-secondary); margin: 0; }
+
+.si-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ── Form Card ───────────────────────────────────────── */
+.si-form-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.si-form-section {
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--border);
+}
+
+.si-form-section:last-child { border-bottom: none; }
+
+.si-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+.si-section-title .si-section-num {
+    width: 20px; height: 20px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    color: white;
+    font-weight: 700;
+}
+
+/* ── Autocomplete ────────────────────────────────────── */
 .autocomplete-wrap { position: relative; }
+
 .suggestions-box {
     position: absolute;
     top: calc(100% + 4px);
@@ -14,137 +96,728 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
-    max-height: 220px;
+    max-height: 240px;
     overflow-y: auto;
     z-index: 500;
     display: none;
 }
+
 .suggestion-item {
-    padding: 10px 14px;
+    padding: 11px 14px;
     cursor: pointer;
     border-bottom: 1px solid var(--border);
+    transition: background var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
+
 .suggestion-item:last-child { border-bottom: none; }
-.suggestion-item:hover { background: var(--bg-surface-2); }
-.suggestion-item-name { font-weight: 600; margin-bottom: 2px; }
-.suggestion-item-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; }
-.price-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.suggestion-item:hover { background: var(--accent-soft); }
+
+.si-thumb {
+    width: 36px; height: 36px;
+    background: var(--bg-surface-2);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+}
+
+.suggestion-item-name {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 3px;
+    color: var(--text-primary);
+}
+
+.suggestion-item-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.suggestion-item-meta span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+/* ── Price Row ───────────────────────────────────────── */
+.price-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+/* ── Input with prefix/suffix ────────────────────────── */
+.input-addon-wrap {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.input-addon-wrap:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.input-addon {
+    padding: 0 11px;
+    background: var(--bg-surface-2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.input-addon-wrap .form-control {
+    border: none;
+    border-radius: 0;
+    flex: 1;
+    box-shadow: none !important;
+}
+
+.input-addon-wrap .form-control:focus {
+    border: none;
+    box-shadow: none;
+    outline: none;
+}
+
+/* ── Field hint ──────────────────────────────────────── */
+.field-hint {
+    margin-top: 5px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.field-hint i { font-size: 10px; }
+
+/* ── Label row ───────────────────────────────────────── */
+.label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.label-row .form-label { margin-bottom: 0; }
+
+/* ── Profit Preview ──────────────────────────────────── */
 .profit-preview {
     display: none;
     background: var(--bg-surface-2);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 14px 16px;
-    margin-top: 2px;
+    overflow: hidden;
+    margin-top: 4px;
 }
-.profit-preview-title {
+
+.pp-header {
+    padding: 10px 14px;
+    background: var(--accent-soft);
+    border-bottom: 1px solid var(--border);
     font-size: 11.5px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-bottom: 10px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
-.profit-preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.profit-item-label { font-size: 12px; color: var(--text-secondary); }
-.profit-item-value { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.pp-body { padding: 14px; }
+
+.profit-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.pp-stat {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+}
+
+.profit-item-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+}
+
+.profit-item-value {
+    font-size: 16px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
 .profit-positive { color: var(--success); }
 .profit-negative { color: var(--danger); }
+
+.margin-bar-wrap { }
+.margin-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+
+.margin-bar-track {
+    height: 8px;
+    background: var(--bg-base);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.margin-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease, background 0.4s ease;
+}
+
 .profit-warning {
     display: flex;
-    gap: 7px;
-    margin-top: 10px;
-    padding: 8px 11px;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 12px;
     background: var(--danger-soft);
     border: 1px solid var(--danger);
     border-radius: var(--radius-sm);
     font-size: 12.5px;
     color: var(--danger);
+    align-items: flex-start;
 }
-.margin-bar-wrap { margin-top: 10px; }
-.margin-bar-label { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 5px; }
-.margin-bar-track { height: 6px; background: var(--bg-base); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
-.margin-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-.form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-.tips-panel { position: sticky; top: calc(var(--topbar-height) + 16px); display: flex; flex-direction: column; gap: 14px; }
+
+.profit-warning i { margin-top: 1px; flex-shrink: 0; }
+
+/* ── Form actions ────────────────────────────────────── */
+.si-form-actions {
+    padding: 16px 22px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border);
+    background: var(--bg-surface-2);
+}
+
+.btn-submit-si {
+    background: linear-gradient(135deg, var(--accent), #6366f1);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 22px;
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 7px;
+    transition: opacity var(--transition), transform 0.15s;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
+
+.btn-submit-si:hover { opacity: 0.92; transform: translateY(-1px); }
+.btn-submit-si:active { transform: translateY(0); }
+
+/* ── Tips Panel ──────────────────────────────────────── */
+.tips-panel {
+    position: sticky;
+    top: calc(var(--topbar-height) + 16px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
 .tip-list { display: flex; flex-direction: column; }
-.tip-item { display: flex; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-.tip-icon { width: 28px; height: 28px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; margin-top: 1px; }
-.tip-icon.blue   { background: var(--accent-soft); color: var(--accent); }
-.tip-icon.green  { background: var(--success-soft); color: var(--success); }
-.tip-icon.orange { background: var(--warning-soft); color: var(--warning); }
-.tip-icon.teal   { background: var(--info-soft);    color: var(--info); }
-@media (max-width: 900px) { .stockin-grid { grid-template-columns: 1fr; } .tips-panel { position: static; } }
-@media (max-width: 560px) { .price-row { grid-template-columns: 1fr; } .profit-preview-grid { grid-template-columns: 1fr; } .form-actions { flex-direction: column; } }
+
+.tip-item {
+    display: flex;
+    gap: 11px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+.tip-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.tip-icon {
+    width: 30px; height: 30px;
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.tip-icon.blue   { background: var(--accent-soft);   color: var(--accent); }
+.tip-icon.green  { background: var(--success-soft);  color: var(--success); }
+.tip-icon.orange { background: var(--warning-soft);  color: var(--warning); }
+.tip-icon.teal   { background: var(--info-soft);     color: var(--info); }
+.tip-icon.purple { background: rgba(99,102,241,0.1); color: #6366f1; }
+
+.tip-item strong { display: block; margin-bottom: 2px; color: var(--text-primary); font-size: 13px; }
+.tip-item span   { color: var(--text-secondary); }
+
+/* ── Category quick-add ──────────────────────────────── */
+.category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.cat-chip {
+    padding: 4px 10px;
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.cat-chip:hover,
+.cat-chip.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+/* ── Stock summary card ──────────────────────────────── */
+.stock-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.ss-item {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    text-align: center;
+}
+
+.ss-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary);
+    line-height: 1.1;
+    margin-bottom: 4px;
+}
+
+.ss-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 900px) {
+    .si-grid { grid-template-columns: 1fr; }
+    .tips-panel { position: static; }
+    .si-page-header { padding: 16px; }
+    .si-header-actions .btn span { display: none; }
+}
+
+@media (max-width: 560px) {
+    .price-row { grid-template-columns: 1fr; }
+    .profit-preview-grid { grid-template-columns: 1fr; }
+    .si-form-actions { flex-direction: column; }
+    .si-form-actions .btn,
+    .si-form-actions .btn-submit-si { width: 100%; justify-content: center; }
+    .stock-summary { grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .ss-value { font-size: 18px; }
+    .si-form-section { padding: 16px; }
+    .si-page-header { flex-direction: column; align-items: flex-start; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header"><div><h1 class="page-title">Stock In</h1><p class="page-subtitle">Add new inventory or restock existing products</p></div></div>
+<div class="si-page">
 
-<div class="stockin-grid">
-    <div class="card">
-        <div class="card-header"><span class="card-header-title">New Stock Entry</span></div>
-        <div class="card-body">
-            <form method="POST" action="{{ url_for('stock_in.add_stock') }}" id="stockForm" style="display:flex; flex-direction:column; gap:16px;">
-                <div class="form-group mb-0">
-                    <label class="form-label">Product Name <span style="color:var(--danger)">*</span></label>
-                    <div class="autocomplete-wrap">
-                        <input type="text" class="form-control" id="product_name" name="product_name" required autocomplete="off" placeholder="Type to search or enter new product…">
-                        <div id="suggestions" class="suggestions-box"></div>
+    <!-- Page Header -->
+    <div class="si-page-header">
+        <div class="si-page-header-left">
+            <div class="si-page-icon">
+                <i class="fas fa-arrow-down-to-line"></i>
+            </div>
+            <div>
+                <h1>Stock In</h1>
+                <p>Add new inventory or restock existing products</p>
+            </div>
+        </div>
+        <div class="si-header-actions">
+            <a href="{{ url_for('stock_in.batch_entry') }}" class="btn btn-secondary">
+                <i class="fas fa-layer-group"></i>
+                <span>Batch Entry</span>
+            </a>
+            <a href="{{ url_for('stock_in.import_page') }}" class="btn btn-secondary">
+                <i class="fas fa-file-arrow-up"></i>
+                <span>Import CSV</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="si-grid">
+
+        <!-- LEFT: Main Form -->
+        <div>
+            <form method="POST"
+                  action="{{ url_for('stock_in.add_stock') }}"
+                  id="stockForm"
+                  autocomplete="off">
+
+                <div class="si-form-card">
+
+                    <!-- Section 1: Product -->
+                    <div class="si-form-section">
+                        <div class="si-section-title">
+                            <span class="si-section-num">1</span>
+                            Product Details
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Product Name
+                                <span style="color:var(--danger)">*</span>
+                            </label>
+                            <div class="autocomplete-wrap">
+                                <input type="text"
+                                       class="form-control"
+                                       id="product_name"
+                                       name="product_name"
+                                       required
+                                       placeholder="Type to search or enter a new product…">
+                                <div id="suggestions" class="suggestions-box"></div>
+                            </div>
+                            <div class="field-hint">
+                                <i class="fas fa-circle-info"></i>
+                                Type 2+ characters to search existing products and auto-fill prices
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:0;">
+                            <div class="label-row">
+                                <label class="form-label">
+                                    Category
+                                    <span style="color:var(--danger)">*</span>
+                                </label>
+                                <a href="{{ url_for('categories.manage_categories') }}"
+                                   target="_blank"
+                                   class="btn btn-sm btn-ghost"
+                                   style="font-size:11.5px;">
+                                    <i class="fas fa-plus"></i> Add new
+                                </a>
+                            </div>
+                            <select class="form-control"
+                                    id="category_id"
+                                    name="category_id"
+                                    required>
+                                <option value="">Select a category…</option>
+                                {% for cat in categories %}
+                                <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <!-- Category quick-select chips -->
+                            {% if categories %}
+                            <div class="category-chips" id="catChips">
+                                {% for cat in categories[:6] %}
+                                <div class="cat-chip" onclick="selectCatChip({{ cat.id }}, this)">
+                                    {{ cat.name }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="field-hint"><i class="fas fa-circle-info"></i> Type at least 2 characters to search existing products</div>
-                </div>
-                <div class="form-group mb-0">
-                    <div class="label-row"><label class="form-label">Category <span style="color:var(--danger)">*</span></label><a href="{{ url_for('categories.manage_categories') }}" target="_blank" class="btn btn-sm btn-ghost"><i class="fas fa-plus"></i> Manage</a></div>
-                    <select class="form-control" id="category_id" name="category_id" required>
-                        <option value="">Select a category…</option>
-                        {% for cat in categories %}
-                        <option value="{{ cat.id }}">{{ cat.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="price-row">
-                    <div class="form-group mb-0"><label class="form-label">Quantity *</label><input type="number" class="form-control" id="quantity" name="quantity" required min="1" step="1" placeholder="0"></div>
-                    <div class="form-group mb-0"><label class="form-label">Buying Price *</label><input type="number" class="form-control" id="buying_price" name="buying_price" required min="0" step="0.01" placeholder="0.00"></div>
-                    <div class="form-group mb-0"><label class="form-label">Selling Price *</label><input type="number" class="form-control" id="selling_price" name="selling_price" required min="0" step="0.01" placeholder="0.00"></div>
-                </div>
-                <div class="profit-preview" id="profitPreview">
-                    <div class="profit-preview-title"><i class="fas fa-calculator"></i> Profit Analysis</div>
-                    <div class="profit-preview-grid">
-                        <div><div class="profit-item-label">Profit per item</div><div class="profit-item-value" id="profitPerItem">—</div></div>
-                        <div><div class="profit-item-label">Total profit</div><div class="profit-item-value" id="totalProfit">—</div></div>
+
+                    <!-- Section 2: Quantity & Pricing -->
+                    <div class="si-form-section">
+                        <div class="si-section-title">
+                            <span class="si-section-num">2</span>
+                            Quantity & Pricing
+                        </div>
+
+                        <div class="price-row">
+                            <div class="form-group">
+                                <label class="form-label">Quantity <span style="color:var(--danger)">*</span></label>
+                                <div class="input-addon-wrap">
+                                    <span class="input-addon">
+                                        <i class="fas fa-cubes" style="font-size:11px;"></i>
+                                    </span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="quantity"
+                                           name="quantity"
+                                           required
+                                           min="1"
+                                           step="1"
+                                           placeholder="0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Buying Price <span style="color:var(--danger)">*</span></label>
+                                <div class="input-addon-wrap">
+                                    <span class="input-addon">KSh</span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="buying_price"
+                                           name="buying_price"
+                                           required
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Selling Price <span style="color:var(--danger)">*</span></label>
+                                <div class="input-addon-wrap">
+                                    <span class="input-addon">KSh</span>
+                                    <input type="number"
+                                           class="form-control"
+                                           id="selling_price"
+                                           name="selling_price"
+                                           required
+                                           min="0"
+                                           step="0.01"
+                                           placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Live Profit Preview -->
+                        <div class="profit-preview" id="profitPreview">
+                            <div class="pp-header">
+                                <i class="fas fa-calculator"></i>
+                                Live Profit Analysis
+                            </div>
+                            <div class="pp-body">
+                                <div class="profit-preview-grid">
+                                    <div class="pp-stat">
+                                        <div class="profit-item-label">Per Item</div>
+                                        <div class="profit-item-value" id="profitPerItem">—</div>
+                                    </div>
+                                    <div class="pp-stat">
+                                        <div class="profit-item-label">Total Profit</div>
+                                        <div class="profit-item-value" id="totalProfit">—</div>
+                                    </div>
+                                </div>
+                                <div class="margin-bar-wrap">
+                                    <div class="margin-bar-label">
+                                        <span>Profit Margin</span>
+                                        <span id="marginPct" style="font-weight:700;">0%</span>
+                                    </div>
+                                    <div class="margin-bar-track">
+                                        <div class="margin-bar-fill"
+                                             id="marginBar"
+                                             style="width:0%;background:var(--success);">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="profit-warning"
+                                     id="profitWarning"
+                                     style="display:none;">
+                                    <i class="fas fa-triangle-exclamation"></i>
+                                    Selling price is below cost — you will make a loss on this stock.
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="margin-bar-wrap"><div class="margin-bar-label"><span>Margin</span><span id="marginPct">0%</span></div><div class="margin-bar-track"><div class="margin-bar-fill" id="marginBar" style="width:0%; background:var(--success);"></div></div></div>
-                    <div class="profit-warning" id="profitWarning" style="display:none;"><i class="fas fa-triangle-exclamation"></i> Selling price is below cost — you will make a loss on this stock.</div>
-                </div>
-                <div class="form-group mb-0"><label class="form-label">Supplier</label><input type="text" class="form-control" id="supplier" name="supplier" placeholder="Supplier name (optional)"></div>
-                <div class="form-group mb-0"><label class="form-label">Notes</label><textarea class="form-control" id="notes" name="notes" rows="2" placeholder="Optional notes about this stock entry…"></textarea></div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-floppy-disk"></i> Add to Stock</button>
-                    <a href="{{ url_for('stock_in.batch_entry') }}" class="btn btn-secondary"><i class="fas fa-layer-group"></i> Batch Entry</a>
-                    <a href="{{ url_for('stock_in.import_page') }}" class="btn btn-secondary"><i class="fas fa-file-arrow-up"></i> Import CSV / Excel</a>
+
+                    <!-- Section 3: Additional Info -->
+                    <div class="si-form-section">
+                        <div class="si-section-title">
+                            <span class="si-section-num">3</span>
+                            Additional Info
+                            <span style="font-size:11px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-muted);margin-left:4px;">(optional)</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Supplier</label>
+                            <div class="input-addon-wrap">
+                                <span class="input-addon">
+                                    <i class="fas fa-truck" style="font-size:11px;"></i>
+                                </span>
+                                <input type="text"
+                                       class="form-control"
+                                       id="supplier"
+                                       name="supplier"
+                                       placeholder="Supplier name">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control"
+                                      id="notes"
+                                      name="notes"
+                                      rows="3"
+                                      placeholder="Any notes about this stock entry…"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="si-form-actions">
+                        <button type="submit" class="btn-submit-si">
+                            <i class="fas fa-floppy-disk"></i>
+                            Add to Stock
+                        </button>
+                        <a href="{{ url_for('stock_in.batch_entry') }}"
+                           class="btn btn-secondary">
+                            <i class="fas fa-layer-group"></i>
+                            Batch Entry
+                        </a>
+                        <a href="{{ url_for('stock_in.import_page') }}"
+                           class="btn btn-secondary">
+                            <i class="fas fa-file-arrow-up"></i>
+                            Import CSV / Excel
+                        </a>
+                    </div>
+
                 </div>
             </form>
         </div>
-    </div>
-    <div class="tips-panel">
-        <div class="card"><div class="card-header"><span class="card-header-title">Quick Tips</span></div><div class="card-body" style="padding:8px 16px;"><div class="tip-list">
-            <div class="tip-item"><div class="tip-icon blue"><i class="fas fa-magnifying-glass"></i></div><div><strong>Auto-fill</strong><br>Type a product name to find and fill existing product details automatically.</div></div>
-            <div class="tip-item"><div class="tip-icon green"><i class="fas fa-chart-line"></i></div><div><strong>Live Profit</strong><br>Profit and margin are calculated in real time as you type prices.</div></div>
-            <div class="tip-item"><div class="tip-icon orange"><i class="fas fa-triangle-exclamation"></i></div><div><strong>Loss Warning</strong><br>You will see a warning if the selling price is set below cost.</div></div>
-            <div class="tip-item"><div class="tip-icon teal"><i class="fas fa-layer-group"></i></div><div><strong>Batch Entry</strong><br>Adding multiple products at once? Use Batch Entry to save time.</div></div>
-            <div class="tip-item"><div class="tip-icon blue"><i class="fas fa-file-excel"></i></div><div><strong>Bulk Import</strong><br>Upload a CSV or Excel file to import hundreds of products at once.</div></div>
-        </div></div></div>
-        <div class="card"><div class="card-header"><span class="card-header-title">Categories</span></div><div class="card-body"><p style="font-size:13px; margin-bottom:12px;">Need to add or edit categories before entering stock?</p><a href="{{ url_for('categories.manage_categories') }}" target="_blank" class="btn btn-secondary" style="width:100%; justify-content:center;"><i class="fas fa-tags"></i> Manage Categories</a></div></div>
+
+        <!-- RIGHT: Tips + Category Panel -->
+        <div class="tips-panel">
+
+            <!-- Quick Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-header-title">
+                        <i class="fas fa-lightbulb"
+                           style="color:var(--warning);font-size:12px;margin-right:5px;"></i>
+                        Quick Tips
+                    </span>
+                </div>
+                <div class="card-body" style="padding:8px 16px 14px;">
+                    <div class="tip-list">
+                        <div class="tip-item">
+                            <div class="tip-icon blue">
+                                <i class="fas fa-magnifying-glass"></i>
+                            </div>
+                            <div>
+                                <strong>Auto-fill</strong>
+                                <span>Type a product name to find and fill existing product details automatically.</span>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon green">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <strong>Live Profit</strong>
+                                <span>Profit and margin calculate in real time as you type prices.</span>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon orange">
+                                <i class="fas fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <strong>Loss Warning</strong>
+                                <span>You'll see a red warning if selling price is below cost.</span>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon teal">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div>
+                                <strong>Batch Entry</strong>
+                                <span>Adding multiple products? Use Batch Entry to save time.</span>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <div class="tip-icon purple">
+                                <i class="fas fa-file-excel"></i>
+                            </div>
+                            <div>
+                                <strong>Bulk Import</strong>
+                                <span>Upload a CSV or Excel file to import hundreds of products at once.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-header-title">
+                        <i class="fas fa-tags"
+                           style="color:var(--accent);font-size:12px;margin-right:5px;"></i>
+                        Categories
+                    </span>
+                </div>
+                <div class="card-body">
+                    {% if categories %}
+                    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px;">
+                        {% for cat in categories %}
+                        <div style="display:flex;align-items:center;justify-content:space-between;
+                                    padding:7px 10px;background:var(--bg-surface-2);
+                                    border:1px solid var(--border);border-radius:var(--radius-sm);
+                                    font-size:12.5px;">
+                            <span style="font-weight:500;">{{ cat.name }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <a href="{{ url_for('categories.manage_categories') }}"
+                       target="_blank"
+                       class="btn btn-secondary"
+                       style="width:100%;justify-content:center;">
+                        <i class="fas fa-tags"></i> Manage Categories
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 </div>
 
 <script>
 (function () {
-    const productInput = document.getElementById('product_name');
+
+    /* ── Autocomplete ────────────────────────────────── */
+    const productInput   = document.getElementById('product_name');
     const suggestionsBox = document.getElementById('suggestions');
     let searchTimeout;
+
     productInput.addEventListener('input', function () {
         clearTimeout(searchTimeout);
         const query = this.value.trim();
@@ -153,14 +826,31 @@
             fetch(`/stock-in/search-product?q=${encodeURIComponent(query)}`)
                 .then(r => r.json())
                 .then(products => {
-                    if (!products.length) { suggestionsBox.style.display = 'none'; return; }
+                    if (!products.length) {
+                        suggestionsBox.style.display = 'none';
+                        return;
+                    }
                     suggestionsBox.innerHTML = products.map(p => `
-                        <div class="suggestion-item" onclick="selectProduct(${p.id},'${p.name.replace(/'/g, "\\'")}',${p.buying_price},${p.selling_price},${p.category_id})">
-                            <div class="suggestion-item-name">${p.name}</div>
-                            <div class="suggestion-item-meta">
-                                <span><i class="fas fa-tag"></i> Buy: KSh ${p.buying_price.toLocaleString()}</span>
-                                <span><i class="fas fa-store"></i> Sell: KSh ${p.selling_price.toLocaleString()}</span>
-                                <span><i class="fas fa-boxes-stacked"></i> Stock: ${p.current_stock}</span>
+                        <div class="suggestion-item"
+                             onclick="selectProduct(
+                                 ${p.id},
+                                 ${JSON.stringify(p.name)},
+                                 ${p.buying_price},
+                                 ${p.selling_price},
+                                 ${p.category_id})">
+                            <div class="si-thumb">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div style="flex:1;min-width:0;">
+                                <div class="suggestion-item-name">${p.name}</div>
+                                <div class="suggestion-item-meta">
+                                    <span><i class="fas fa-tag"></i> Buy: KSh ${p.buying_price.toLocaleString()}</span>
+                                    <span><i class="fas fa-store"></i> Sell: KSh ${p.selling_price.toLocaleString()}</span>
+                                    <span><i class="fas fa-boxes-stacked"></i> ${p.current_stock} in stock</span>
+                                </div>
+                            </div>
+                            <div style="font-size:11px;color:var(--accent);font-weight:600;flex-shrink:0;">
+                                Select
                             </div>
                         </div>
                     `).join('');
@@ -168,50 +858,103 @@
                 });
         }, 280);
     });
+
     window.selectProduct = function (id, name, buyPrice, sellPrice, categoryId) {
         productInput.value = name;
-        document.getElementById('buying_price').value = buyPrice;
+        document.getElementById('buying_price').value  = buyPrice;
         document.getElementById('selling_price').value = sellPrice;
-        document.getElementById('category_id').value = categoryId;
+        document.getElementById('category_id').value   = categoryId;
         suggestionsBox.style.display = 'none';
+
+        /* sync category chips */
+        document.querySelectorAll('.cat-chip').forEach(c => {
+            c.classList.toggle('selected', c.dataset.catId == categoryId);
+        });
+
         calculateProfit();
+        document.getElementById('quantity').focus();
     };
-    document.addEventListener('click', function(e) {
-        if (!productInput.contains(e.target) && !suggestionsBox.contains(e.target)) suggestionsBox.style.display = 'none';
+
+    document.addEventListener('click', function (e) {
+        if (!productInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.style.display = 'none';
+        }
     });
-    const qtyInput = document.getElementById('quantity');
-    const buyInput = document.getElementById('buying_price');
-    const sellInput = document.getElementById('selling_price');
-    const profitPreview = document.getElementById('profitPreview');
-    const elPerItem = document.getElementById('profitPerItem');
-    const elTotal = document.getElementById('totalProfit');
+
+    /* ── Category chips ──────────────────────────────── */
+    window.selectCatChip = function (catId, el) {
+        document.getElementById('category_id').value = catId;
+        document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    };
+
+    /* set data-cat-id on chips */
+    document.querySelectorAll('.cat-chip').forEach((chip, i) => {
+        const select = document.getElementById('category_id');
+        const opt = select.options[i + 1];
+        if (opt) chip.dataset.catId = opt.value;
+    });
+
+    /* sync chip when select changes */
+    document.getElementById('category_id').addEventListener('change', function () {
+        const val = this.value;
+        document.querySelectorAll('.cat-chip').forEach(c => {
+            c.classList.toggle('selected', c.dataset.catId === val);
+        });
+    });
+
+    /* ── Profit Calculator ───────────────────────────── */
+    const qtyInput    = document.getElementById('quantity');
+    const buyInput    = document.getElementById('buying_price');
+    const sellInput   = document.getElementById('selling_price');
+    const preview     = document.getElementById('profitPreview');
+    const elPerItem   = document.getElementById('profitPerItem');
+    const elTotal     = document.getElementById('totalProfit');
     const elMarginPct = document.getElementById('marginPct');
-    const elBar = document.getElementById('marginBar');
-    const elWarning = document.getElementById('profitWarning');
+    const elBar       = document.getElementById('marginBar');
+    const elWarning   = document.getElementById('profitWarning');
+
     function calculateProfit() {
-        const qty = parseFloat(qtyInput.value) || 0;
-        const buy = parseFloat(buyInput.value) || 0;
+        const qty  = parseFloat(qtyInput.value)  || 0;
+        const buy  = parseFloat(buyInput.value)  || 0;
         const sell = parseFloat(sellInput.value) || 0;
+
         if (qty > 0 && buy > 0 && sell > 0) {
             const perItem = sell - buy;
-            const total = perItem * qty;
-            const margin = buy > 0 ? (perItem / sell) * 100 : 0;
-            const isLoss = perItem < 0;
-            elPerItem.className = `profit-item-value ${isLoss ? 'profit-negative' : 'profit-positive'}`;
-            elTotal.className = `profit-item-value ${isLoss ? 'profit-negative' : 'profit-positive'}`;
-            elPerItem.innerText = `${isLoss ? '' : '+'}KSh ${perItem.toFixed(2)}`;
-            elTotal.innerText = `${isLoss ? '' : '+'}KSh ${total.toFixed(2)}`;
+            const total   = perItem * qty;
+            const margin  = sell > 0 ? (perItem / sell) * 100 : 0;
+            const isLoss  = perItem < 0;
+
+            const cls = isLoss ? 'profit-item-value profit-negative'
+                               : 'profit-item-value profit-positive';
+            elPerItem.className = cls;
+            elTotal.className   = cls;
+
+            const sign = isLoss ? '' : '+';
+            elPerItem.textContent = `${sign}KSh ${perItem.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+            elTotal.textContent   = `${sign}KSh ${total.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+
             const pct = Math.min(Math.abs(margin), 100);
-            elMarginPct.innerText = `${margin.toFixed(1)}%`;
-            elBar.style.width = `${pct}%`;
-            elBar.style.background = isLoss ? 'var(--danger)' : pct > 20 ? 'var(--success)' : 'var(--warning)';
+            elMarginPct.textContent = `${margin.toFixed(1)}%`;
+            elMarginPct.style.color = isLoss ? 'var(--danger)'
+                                     : pct > 20 ? 'var(--success)'
+                                     : 'var(--warning)';
+            elBar.style.width      = `${pct}%`;
+            elBar.style.background = isLoss ? 'var(--danger)'
+                                    : pct > 20 ? 'var(--success)'
+                                    : 'var(--warning)';
             elWarning.style.display = isLoss ? 'flex' : 'none';
-            profitPreview.style.display = 'block';
-        } else { profitPreview.style.display = 'none'; }
+            preview.style.display   = 'block';
+        } else {
+            preview.style.display = 'none';
+        }
     }
-    qtyInput.addEventListener('input', calculateProfit);
-    buyInput.addEventListener('input', calculateProfit);
+
+    qtyInput.addEventListener('input',  calculateProfit);
+    buyInput.addEventListener('input',  calculateProfit);
     sellInput.addEventListener('input', calculateProfit);
+
 })();
 </script>
+
 {% endblock %}
